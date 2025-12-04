@@ -1,0 +1,54 @@
+[
+  {
+    "id": 1,
+    "slug": "aluminium-bathroom-door",
+    "title": "Aluminium Bathroom Door",
+    "subtitle": "With chaukhat, ready for wet areas",
+    "description": "Powder-coated aluminium bathroom door with chaukhat, designed for Indian bathrooms. Includes standard hardware and water-resistant finish.",
+    "price": 5200,
+    "currency": "INR",
+    "category": "Doors",
+    "image": "/assets/card-1.jpg",
+    "inStock": true,
+    "href": "/products/aluminium-bathroom-door"
+  },
+  {
+    "id": 2,
+    "slug": "two-track-sliding-window",
+    "title": "2 Track Sliding Window",
+    "subtitle": "For living rooms and bedrooms",
+    "description": "2 track aluminium sliding window with customizable size. Ideal for living rooms and bedrooms, with options for clear or tinted glass.",
+    "price": 6400,
+    "currency": "INR",
+    "category": "Windows",
+    "image": "/assets/card-2.jpg",
+    "inStock": true,
+    "href": "/products/two-track-sliding-window"
+  },
+  {
+    "id": 3,
+    "slug": "three-track-sliding-window",
+    "title": "3 Track Sliding Window with SS Net",
+    "subtitle": "With half SS net for ventilation",
+    "description": "3 track aluminium sliding window including one track for SS net. Perfect balance of ventilation and mosquito protection.",
+    "price": 7800,
+    "currency": "INR",
+    "category": "Windows",
+    "image": "/assets/card-1.jpg",
+    "inStock": true,
+    "href": "/products/three-track-sliding-window"
+  },
+  {
+    "id": 4,
+    "slug": "hardware-package-basic",
+    "title": "Basic Hardware Package",
+    "subtitle": "For 1 door + 2 windows",
+    "description": "Pre-bundled hardware set including hinges, locks, handles and fasteners for 1 aluminium door and 2 aluminium windows.",
+    "price": 3200,
+    "currency": "INR",
+    "category": "Hardware Packages",
+    "image": "/assets/card-2.jpg",
+    "inStock": true,
+    "href": "/products/hardware-package-basic"
+  }
+]

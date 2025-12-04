@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Stara Depot – Chennai",
+    "city": "Chennai",
+    "phone": "+91-44-XXXX",
+    "address": "Ramapuram, Chennai"
+  },
+  {
+    "name": "Stara Home – Bangalore",
+    "city": "Bengaluru",
+    "phone": "+91-80-XXXX",
+    "address": "Dommasandra, Bengaluru"
+  },
+  {
+    "name": "Stara Works – Mumbai",
+    "city": "Mumbai",
+    "phone": "+91-22-XXXX",
+    "address": "Andheri, Mumbai"
+  }
+]
+
