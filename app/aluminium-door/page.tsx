@@ -17,6 +17,7 @@ export default function AluminiumDoorPage() {
   const [decorFilm, setDecorFilm] = useState(false)
   const [brownCoated, setBrownCoated] = useState(false)
   const [selectedThickness, setSelectedThickness] = useState<AluminiumDoorThickness>('1.2 MM')
+  const [showPrintDetails, setShowPrintDetails] = useState(false)
 
   const calculations = useMemo(() => {
     return calculateAluminiumDoor({
@@ -384,6 +385,8 @@ export default function AluminiumDoorPage() {
               </button>
             </div>
           </div>
+            </>
+          )}
         </div>
       </section>
     </main>
