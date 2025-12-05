@@ -39,13 +39,13 @@ export default function AluminiumDoorPage() {
 
   return (
     <main className="min-h-screen">
-      <div className="bg-[var(--bg)] py-8 sm:py-10">
+      <div className="bg-[var(--bg)] pt-24 pb-8">
         <div className="container mx-auto px-4 sm:px-6 md:px-8">
-          <div className="text-right">
-            <h1 className="text-xl sm:text-2xl font-bold mb-2 text-[var(--fg)]">
+          <div className="text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--fg)]">
               Aluminium Door
             </h1>
-            <p className="text-sm sm:text-base text-[var(--muted)]">
+            <p className="text-sm md:text-base text-[var(--muted)]">
               We Provide a Smart Price Calculator for Your Needs
             </p>
           </div>
