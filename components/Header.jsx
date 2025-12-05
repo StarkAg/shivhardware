@@ -25,7 +25,7 @@ export default function Header() {
       ].join(' ')}
       aria-label="Main navigation"
     >
-      <div className="w-full px-3 sm:px-5 md:px-8 py-3 sm:py-4 flex items-center justify-end gap-6 relative">
+      <div className="w-full px-3 sm:px-5 md:px-8 py-4 sm:py-5 md:py-6 flex items-center justify-end gap-6 relative">
         {/* Logo - Shiv Hardware Store */}
         <Link href="/" className="flex items-center hover-scale gap-3 absolute left-3 sm:left-5 md:left-8" aria-label="Shiv Hardware Store home">
           <div className="relative w-10 h-10 sm:w-12 sm:h-12">
