@@ -79,7 +79,7 @@ export default function AluminiumDoorPage() {
                     <div className="absolute -left-12 top-0 bottom-0 flex flex-col items-center justify-center">
                       <div className="flex-1 border-l-2 border-[var(--accent)]"></div>
                       <div className="px-2 py-1 bg-[var(--bg)] border border-[var(--muted)]/30 rounded text-xs font-medium text-[var(--fg)] whitespace-nowrap">
-                        {calculations.heightDisplay}"
+                        {calculations.heightDisplay}
                       </div>
                       <div className="flex-1 border-l-2 border-[var(--accent)]"></div>
                     </div>
@@ -88,7 +88,7 @@ export default function AluminiumDoorPage() {
                     <div className="absolute -bottom-8 left-0 right-0 flex items-center justify-center">
                       <div className="flex-1 border-t-2 border-[var(--accent)]"></div>
                       <div className="px-2 py-1 bg-[var(--bg)] border border-[var(--muted)]/30 rounded text-xs font-medium text-[var(--fg)] whitespace-nowrap mx-2">
-                        {calculations.widthDisplay}"
+                        {calculations.widthDisplay}
                       </div>
                       <div className="flex-1 border-t-2 border-[var(--accent)]"></div>
                     </div>
