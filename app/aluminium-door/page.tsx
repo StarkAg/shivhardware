@@ -198,64 +198,64 @@ export default function AluminiumDoorPage() {
               <div>
                 <h3 className="text-lg font-bold mb-4 text-[var(--fg)]">Options →</h3>
                 <div className="space-y-3 border border-[var(--muted)]/20 p-6 bg-black/20 backdrop-blur-sm rounded-lg">
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={chaukhat}
-                      onChange={(e) => setChaukhat(e.target.checked)}
-                      className="w-5 h-5 border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--accent)] focus:ring-[var(--accent)] rounded cursor-pointer"
-                    />
-                    <span className="text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors">in Chaukhat</span>
+                  <label className="flex items-center justify-between cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={chaukhat}
+                        onChange={(e) => setChaukhat(e.target.checked)}
+                        className="w-5 h-5 border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--accent)] focus:ring-[var(--accent)] rounded cursor-pointer"
+                      />
+                      <span className="text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors">Chaukhat</span>
+                    </div>
+                    {chaukhat && (
+                      <span className="text-[var(--fg)] font-medium">₹{Math.round(calculations.chaukhatCost)}</span>
+                    )}
                   </label>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={accessories}
-                      onChange={(e) => setAccessories(e.target.checked)}
-                      className="w-5 h-5 border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--accent)] focus:ring-[var(--accent)] rounded cursor-pointer"
-                    />
-                    <span className="text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors">Accessories</span>
+                  <label className="flex items-center justify-between cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={accessories}
+                        onChange={(e) => setAccessories(e.target.checked)}
+                        className="w-5 h-5 border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--accent)] focus:ring-[var(--accent)] rounded cursor-pointer"
+                      />
+                      <span className="text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors">Accessories</span>
+                    </div>
+                    {accessories && (
+                      <span className="text-[var(--fg)] font-medium">₹{calculations.accessoriesCost}</span>
+                    )}
                   </label>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={decorFilm}
-                      onChange={(e) => setDecorFilm(e.target.checked)}
-                      className="w-5 h-5 border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--accent)] focus:ring-[var(--accent)] rounded cursor-pointer"
-                    />
-                    <span className="text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors">Decor Film</span>
+                  <label className="flex items-center justify-between cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={decorFilm}
+                        onChange={(e) => setDecorFilm(e.target.checked)}
+                        className="w-5 h-5 border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--accent)] focus:ring-[var(--accent)] rounded cursor-pointer"
+                      />
+                      <span className="text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors">Decor Film</span>
+                    </div>
+                    {decorFilm && (
+                      <span className="text-[var(--fg)] font-medium">₹{Math.round(calculations.decorFilmCost)}</span>
+                    )}
                   </label>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={brownCoated}
-                      onChange={(e) => setBrownCoated(e.target.checked)}
-                      className="w-5 h-5 border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--accent)] focus:ring-[var(--accent)] rounded cursor-pointer"
-                    />
-                    <span className="text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors">Brown Coated</span>
+                  <label className="flex items-center justify-between cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={brownCoated}
+                        onChange={(e) => setBrownCoated(e.target.checked)}
+                        className="w-5 h-5 border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--accent)] focus:ring-[var(--accent)] rounded cursor-pointer"
+                      />
+                      <span className="text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors">Brown Coated</span>
+                    </div>
+                    {brownCoated && (
+                      <span className="text-[var(--fg)] font-medium">₹{Math.round(calculations.brownCoatedCost)}</span>
+                    )}
                   </label>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Price Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div className="border border-[var(--muted)]/20 p-6 bg-black/20 backdrop-blur-sm rounded-lg">
-              <p className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2">Net Area</p>
-              <p className="text-3xl font-bold text-[var(--fg)]">{calculations.area} Sqft</p>
-            </div>
-            <div className="border border-[var(--muted)]/20 p-6 bg-black/20 backdrop-blur-sm rounded-lg">
-              <p className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2">Chaukhat Rft</p>
-              <p className="text-3xl font-bold text-[var(--fg)]">{calculations.chaukhatRft}</p>
-            </div>
-            <div className="border border-[var(--muted)]/20 p-6 bg-black/20 backdrop-blur-sm rounded-lg">
-              <p className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2">Hardware Kit</p>
-              <p className="text-3xl font-bold text-[var(--fg)]">₹{accessories ? 160 : 0}</p>
-            </div>
-            <div className="border border-[var(--muted)]/20 p-6 bg-black/20 backdrop-blur-sm rounded-lg border-[var(--accent)]/50">
-              <p className="text-xs uppercase tracking-wider text-[var(--muted)] mb-2">Total</p>
-              <p className="text-3xl font-bold text-[var(--accent)]">₹{Math.round(calculations.total)}</p>
             </div>
           </div>
 
