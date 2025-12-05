@@ -1,6 +1,22 @@
 {
   "name": "shiv-hardware-store",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "E-commerce website for Shiv Hardware Store - Premium hardware solutions with product catalog and pricing calculators",
+  "author": "Shiv Hardware Store",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/StarkAg/shivhardware.git"
+  },
+  "homepage": "https://shiv-hardware-store.vercel.app",
+  "keywords": [
+    "hardware",
+    "ecommerce",
+    "aluminium doors",
+    "windows",
+    "calculators",
+    "nextjs",
+    "react"
+  ],
   "private": true,
   "scripts": {
     "dev": "next dev",

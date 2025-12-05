@@ -1,6 +1,18 @@
-# Stara Site
+# Shiv Hardware Store
 
-A modern Next.js 15 website built with App Router, featuring smooth scrolling, GSAP animations, and a black & white design theme.
+A modern e-commerce website for Shiv Hardware Store, built with Next.js 15. Features product collections, pricing calculators for aluminium doors and windows, and a complete shopping experience.
+
+🌐 **Live Site**: [https://shiv-hardware-store.vercel.app](https://shiv-hardware-store.vercel.app)  
+📦 **Repository**: [https://github.com/StarkAg/shivhardware](https://github.com/StarkAg/shivhardware)
+
+## Features
+
+- 🛍️ **E-commerce Product Catalog** - Browse 7 collections with 100+ products
+- 🧮 **Pricing Calculators** - Calculate costs for aluminium doors and windows
+- 🎨 **Modern UI/UX** - Smooth scrolling, GSAP animations, custom cursor
+- 📱 **Responsive Design** - Optimized for mobile, tablet, and desktop
+- ⚡ **Performance Optimized** - WebP images, lazy loading, Next.js optimization
+- 🔍 **SEO Friendly** - Meta tags, structured data, sitemap ready
 
 ## Tech Stack
 
@@ -9,7 +21,7 @@ A modern Next.js 15 website built with App Router, featuring smooth scrolling, G
 - **Tailwind CSS** - Utility-first CSS framework
 - **GSAP** - Animation library with ScrollTrigger
 - **Lenis** - Smooth scroll library
-- **Swiper** - Touch slider library
+- **TypeScript** - Type safety
 
 ## Getting Started
 
@@ -31,7 +43,7 @@ Run the development server:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Build
 
@@ -43,8 +55,6 @@ npm run build
 
 ### Start Production Server
 
-Start the production server (after building):
-
 ```bash
 npm run start
 ```
@@ -52,215 +62,74 @@ npm run start
 ## Project Structure
 
 ```
-stara-site/
+shiv-hardware-store/
 ├── app/                    # Next.js App Router pages
-│   ├── layout.jsx         # Root layout with metadata
-│   └── page.jsx           # Home page
-├── components/            # React components
-│   ├── CursorFollower.jsx
+│   ├── collections/        # Product collection pages
+│   ├── products/           # Individual product pages
+│   ├── calculators/        # Pricing calculator pages
+│   └── ...
+├── components/             # React components
+│   ├── Header.jsx
+│   ├── Footer.jsx
 │   ├── Hero.jsx
 │   ├── ProductGrid.jsx
-│   └── SmoothScroll.jsx
-├── lib/                   # Utility functions
-│   └── scroll.js          # Lenis scroll initialization
-├── public/                # Static assets
-│   └── assets/
-│       ├── images/        # Image assets
-│       └── videos/        # Video assets
-├── styles/                # Global styles
-│   └── globals.css        # Tailwind & custom CSS
-└── package.json
+│   └── ...
+├── data/                   # Product data and collections
+│   ├── collections/       # Collection JSON files
+│   └── collections-metadata.json
+├── lib/                    # Utility functions
+│   ├── calculators.ts     # Calculator logic
+│   └── animations.js      # GSAP animations
+├── public/                 # Static assets
+│   ├── scraped-images/    # Product images (WebP optimized)
+│   └── assets/            # Site assets
+└── scripts/               # Utility scripts
+    └── optimize-images.js # Image optimization script
 ```
 
-## Assets
+## Product Collections
 
-### Image & Video Placement
+1. **Plywood, MDF & HDHMR** - Construction boards and panels
+2. **Fevicol Adhesives** - Industrial adhesives and sealants
+3. **Kitchen Systems & Accessories** - Modular kitchen hardware
+4. **Hinges, Channels & Handles** - Furniture and door hardware
+5. **Wardrobe & Bed Fittings** - Storage and bed mechanisms
+6. **Door Locks & Hardware** - Security and door fittings
+7. **General Hardware & Tools** - Essential tools and hardware
 
-Place all assets in the `/public/assets` directory:
+## Calculators
 
-- **Images**: `/public/assets/images/`
-  - Hero images, product cards, OpenGraph images, etc.
-  - Supported formats: `.jpg`, `.jpeg`, `.png`, `.svg`, `.webp`, `.gif`, `.avif`
+- **Aluminium Door Calculator** - Calculate costs for custom aluminium doors
+- **2-Track Window Calculator** - Estimate pricing for 2-track windows
+- **3-Track Window Calculator** - Estimate pricing for 3-track windows
 
-- **Videos**: `/public/assets/videos/`
-  - Hero videos, background videos, etc.
-  - Supported formats: `.mp4`, `.webm`, `.ogg`
+## Image Optimization
 
-### Required Assets
+Optimize product images for faster loading:
 
-Before deploying to production, replace these placeholder assets:
-
-- `/public/assets/images/card-1.jpg` - Product card placeholder
-- `/public/assets/images/og-stara.jpg` - OpenGraph image (1200x630px recommended)
-- `/public/assets/videos/hero-video.mp4` - Hero video placeholder
-
-### Asset Usage
-
-Reference assets in your code using the `/assets/` path:
-
-```jsx
-// Images
-<Image src="/assets/images/your-image.jpg" alt="Description" />
-
-// Videos
-<video src="/assets/videos/your-video.mp4" />
+```bash
+npm run optimize-images
 ```
 
-## Deployment to Vercel
+This script:
+- Converts images to WebP format
+- Resizes large images to max 1200px
+- Compresses with 85% quality
+- Reduces file sizes by 50-95%
 
-### Step 1: Connect Repository
+## Deployment
 
-1. Push your code to GitHub, GitLab, or Bitbucket
-2. Go to [Vercel](https://vercel.com) and sign in
-3. Click "Add New Project"
-4. Import your repository
+The site is deployed on Vercel with automatic deployments from GitHub.
 
-### Step 2: Configure Project Settings
+### Manual Deployment
 
-1. **Framework Preset**: Select `Next.js`
-2. **Build Command**: `npm run build` (default, but verify)
-3. **Output Directory**: `next` (Next.js default)
-4. **Install Command**: `npm install` (default)
+1. Push to GitHub: `git push origin main`
+2. Vercel automatically builds and deploys
+3. Site available at: `https://shiv-hardware-store.vercel.app`
 
-### Step 3: Environment Variables
+## Environment Variables
 
-No special environment variables are needed for a static demo. If you add API keys or other secrets later, add them in the Vercel dashboard under "Environment Variables".
-
-### Step 4: Advanced Settings
-
-#### Image Optimization
-
-Enable Next.js Image Optimization in Vercel:
-
-1. Go to Project Settings → General
-2. Ensure "Image Optimization" is enabled (enabled by default)
-3. For custom image domains, add them in `next.config.js`:
-
-```js
-images: {
-  domains: ['your-cdn-domain.com'],
-}
-```
-
-#### Analytics
-
-- **Next.js Analytics**: Disable if not using (Project Settings → Analytics)
-- Consider using Vercel Analytics for performance insights
-
-### Step 5: Deploy
-
-1. Click "Deploy"
-2. Vercel will automatically build and deploy your site
-3. Your site will be available at `your-project.vercel.app`
-
-### Post-Deployment
-
-1. Update canonical URLs in `app/layout.jsx` with your production domain
-2. Update OpenGraph image URL if using absolute URLs
-3. Verify all assets are loading correctly
-4. Test smooth scroll and animations on production
-
-## Customization
-
-### Theme Colors
-
-Edit CSS variables in `styles/globals.css`:
-
-```css
-:root {
-  --bg: #0b0b0b;      /* Black background */
-  --fg: #ffffff;      /* White text */
-  --muted: #999;      /* Gray for secondary text */
-  --accent: #ffffff;   /* White for accents/buttons */
-}
-```
-
-### Smooth Scroll Settings
-
-Adjust Lenis scroll behavior in `lib/scroll.js`:
-
-- **Duration**: Lower (1.0-1.5) = faster, Higher (1.5-2.5) = slower
-- **Easing**: Modify the easing function for different scroll feels
-
-### GSAP Animations
-
-Animation settings can be adjusted in `lib/animations.js`:
-- `heroIntro()` - Hero title/subtitle/CTA animations with mask reveal
-- `heroParallax()` - Background media parallax effect
-- `cardStaggerReveal()` - Staggered product card reveals
-
-All animations respect `prefers-reduced-motion` and work with/without Lenis.
-
-## Animation Configuration
-
-### Tuning Animations
-
-Edit `/lib/animations.js` to adjust:
-- Default duration and easing
-- Stagger delays
-- ScrollTrigger start positions
-- Parallax intensity
-
-### Disable Lenis on Mobile
-
-Lenis is automatically disabled on screens < 700px. To change this threshold, edit `lib/animations.js`:
-
-```js
-export function shouldDisableLenis() {
-  return window.innerWidth < 700 // Change this value
-}
-```
-
-### Debug ScrollTrigger
-
-To see ScrollTrigger markers during development, set in `lib/animations.js`:
-
-```js
-export const DEBUG_SCROLL_TRIGGERS = true
-```
-
-## Media Optimization Tips
-
-### Images
-- Compress images to 80% quality before adding
-- Use WebP format for better compression
-- Hero images: minimum 1920px width
-- Product cards: 4:3 aspect ratio recommended
-- OG image: 1200x630px (1.91:1 ratio)
-
-### Videos
-- Use MP4 format (H.264 codec)
-- Keep file sizes < 10MB if possible
-- For videos > 10MB, host on CDN (S3/Cloudflare) and use URL
-- Always include poster image for fallback
-
-### Next.js Image Optimization
-- Images use Next.js `<Image>` component by default
-- `unoptimized` flag is set for local development
-- Remove `unoptimized` for production to enable optimization
-- Add custom domains in `next.config.js` if using remote images
-
-## Production Checklist
-
-Before going live:
-
-- [ ] Replace all placeholder images in `/public/assets/`:
-  - [ ] `/public/assets/hero-1.jpg`, `/public/assets/hero-2.jpg`
-  - [ ] `/public/assets/cards/card-1.jpg`, `card-2.jpg`, `card-3.jpg`
-  - [ ] `/public/assets/og-stara.jpg`
-  - [ ] `/public/assets/logo-stara.png`
-- [ ] Replace hero video placeholder (`/public/assets/hero-video.mp4`)
-- [ ] Update metadata in `app/layout.jsx`:
-  - [ ] Canonical URLs (replace `https://stara.com` with actual domain)
-  - [ ] Organization contact info in JSON-LD (phone, area served)
-  - [ ] Logo URL in JSON-LD
-- [ ] Update dealer data in `/data/dealers.json` with real dealer information
-- [ ] Test all animations and interactions
-- [ ] Verify responsive design on mobile/tablet/desktop
-- [ ] Check accessibility (keyboard navigation, screen readers)
-- [ ] Optimize images (compress, use WebP where possible)
-- [ ] Test on Vercel preview deployment
-- [ ] Configure contact form API route to send emails (currently logs to console)
+No environment variables required for basic functionality.
 
 ## Scripts
 
@@ -268,12 +137,20 @@ Before going live:
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
+- `npm run optimize-images` - Optimize product images
+
+## Business Information
+
+**Shiv Hardware Store**  
+📍 Ramgarh Cantonment, Ramgarh, Jharkhand, India  
+📞 Phone: [080928 50954](tel:+918092850954)  
+📧 Email: [info@shivhardware.com](mailto:info@shivhardware.com)  
+🕐 Hours: 10:30 AM - 7:00 PM (Closed Tuesdays)
 
 ## License
 
-[Add your license here]
+Private - All rights reserved
 
 ## Support
 
-For issues or questions, please [create an issue](https://github.com/your-repo/issues).
-
+For issues or questions, please contact us at [info@shivhardware.com](mailto:info@shivhardware.com)

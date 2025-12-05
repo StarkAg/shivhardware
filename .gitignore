@@ -36,3 +36,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# image backups
+public/scraped-images/_originals/
+scraping/images/
+
+# jupyter notebooks (optional, keep if needed)
+# *.ipynb
+
