@@ -1,8 +1,9 @@
+import { Suspense } from 'react'
 import ContactForm from '@/components/ContactForm'
 
 export const metadata = {
-  title: 'Contact — Stara',
-  description: 'Get in touch with Stara. Request a quote, schedule a site visit, or find a dealer near you.',
+  title: 'Contact — Shiv Hardware Store',
+  description: 'Get in touch with Shiv Hardware Store. Request a quote, schedule a site visit, or find a dealer near you.',
 }
 
 export default function ContactPage() {
@@ -25,10 +26,13 @@ export default function ContactPage() {
               Contact Us
             </h1>
             <p className="text-lg text-[var(--muted)] mb-12">
-              Find the nearest Stara dealer, request a sample, or schedule a site visit. Dealers carry samples, measurement help and installation services.
+              Get in touch with Shiv Hardware Store. Request a quote, schedule a site visit, or find a dealer near you. 
+              Our team is here to help with all your hardware and building material needs.
             </p>
             
-            <ContactForm />
+            <Suspense fallback={<div className="text-[var(--muted)]">Loading form...</div>}>
+              <ContactForm />
+            </Suspense>
           </div>
         </div>
       </section>

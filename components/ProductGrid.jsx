@@ -48,55 +48,43 @@ export default function CollectionShowcase({ collections = [] }) {
 
   return (
     <section className="container mx-auto px-4 sm:px-6 md:px-8 py-16 sm:py-20 md:py-24">
-      <div
-        ref={gridRef}
-        className="grid grid-cols-1 md:grid-cols-2 gap-0"
-      >
+          <div
+            ref={gridRef}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+          >
         {displayCollections.map((collection, index) => (
           <Link
             key={collection.id}
             href={collection.href || `/collections/${collection.slug || collection.id}`}
-            className="group relative block overflow-hidden hover-scale"
+            className="group relative block overflow-hidden rounded-lg hover-scale"
           >
             <article
               ref={(el) => {
                 if (el) cardsRef.current[index] = el
               }}
-              className="relative h-[70vh] min-h-[500px] overflow-hidden"
+              className="relative overflow-hidden rounded-lg flex flex-col"
             >
-              {/* Collection Image - Full bleed */}
-              <div className="absolute inset-0">
+              {/* Collection Image */}
+              <div className="relative aspect-[4/3] overflow-hidden bg-[var(--muted)]/10">
                 <Image
                   src={collection.image || '/assets/card-1.jpg'}
                   alt={collection.title}
                   fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out bw-image"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  priority={index < 2}
-                  unoptimized
+                  className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                  priority={index < 4}
+                  quality={90}
                   onError={(e) => {
                     e.target.style.display = 'none'
                   }}
                 />
-                
-                {/* Gradient overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               </div>
 
-              {/* Collection Info - Overlay at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 z-10">
-                <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--fg)] mb-3 group-hover:translate-y-[-4px] transition-transform duration-300">
+              {/* Collection Title - Below image */}
+              <div className="p-4 bg-[var(--bg)]">
+                <h3 className="text-lg md:text-xl font-bold text-[var(--fg)] text-center">
                   {collection.title}
                 </h3>
-                {collection.subtitle && (
-                  <p className="text-lg md:text-xl text-[var(--muted)] max-w-md">
-                    {collection.subtitle}
-                  </p>
-                )}
-                {/* Subtle arrow indicator */}
-                <div className="mt-6 text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-sm uppercase tracking-wider">Explore →</span>
-                </div>
               </div>
             </article>
           </Link>

@@ -1,0 +1,73 @@
+[
+  {
+    "id": 1,
+    "slug": "plywood-mdf-hdhmr",
+    "title": "Plywood, MDF & HDHMR",
+    "subtitle": "High-quality boards for all your construction needs",
+    "description": "Premium plywood, MDF, and HDHMR boards from trusted manufacturers. Available in various grades and thicknesses for interior and exterior applications.",
+    "image": "/assets/headers/Plywood.jpg",
+    "productCount": 11,
+    "href": "/collections/plywood-mdf-hdhmr"
+  },
+  {
+    "id": 2,
+    "slug": "fevicol",
+    "title": "Fevicol Adhesives",
+    "subtitle": "Strong and reliable adhesives for every application",
+    "description": "Complete range of Fevicol adhesives including synthetic resin, heatproof, waterproof, and special adhesives for PVC sheets. Trusted by professionals.",
+    "image": "/assets/headers/Fevicol.jpg",
+    "productCount": 8,
+    "href": "/collections/fevicol"
+  },
+  {
+    "id": 3,
+    "slug": "kitchen-systems-accessories",
+    "title": "Kitchen Systems & Accessories",
+    "subtitle": "Modern solutions for efficient and stylish kitchens",
+    "description": "Premium kitchen hardware including drawer systems, pull-outs, waste bins, and organizational accessories. Transform your kitchen with quality fittings.",
+    "image": "/assets/headers/kitchgen.jpg",
+    "productCount": 24,
+    "href": "/collections/kitchen-systems-accessories"
+  },
+  {
+    "id": 4,
+    "slug": "hinges-channels-handles",
+    "title": "Hinges, Channels & Handles",
+    "subtitle": "Durable and aesthetic hardware for furniture and doors",
+    "description": "Wide selection of hinges, drawer channels, and handles from leading brands like Hettich and Ebco. Soft-close mechanisms and premium finishes available.",
+    "image": "/assets/headers/hinges.jpg",
+    "productCount": 23,
+    "href": "/collections/hinges-channels-handles"
+  },
+  {
+    "id": 5,
+    "slug": "wardrobe-bed-fittings",
+    "title": "Wardrobe & Bed Fittings",
+    "subtitle": "Essential fittings for robust and functional wardrobes and beds",
+    "description": "Complete range of wardrobe and bed fittings including hydraulic lifts, sliding mechanisms, rails, and accessories. Professional-grade hardware.",
+    "image": "/assets/headers/wardrobe.jpg",
+    "productCount": 21,
+    "href": "/collections/wardrobe-bed-fittings"
+  },
+  {
+    "id": 6,
+    "slug": "door-locks-hardware",
+    "title": "Door Locks & Hardware",
+    "subtitle": "Secure and stylish locks and hardware for all types of doors",
+    "description": "Premium door locks from Europa and Godrej. Mortise locks, cylindrical locks, door closers, and complete door hardware solutions.",
+    "image": "/assets/headers/door-lock.jpg",
+    "productCount": 15,
+    "href": "/collections/door-locks-hardware"
+  },
+  {
+    "id": 7,
+    "slug": "general-hardware-tools",
+    "title": "General Hardware & Tools",
+    "subtitle": "A wide range of general hardware and essential tools",
+    "description": "Essential hardware and tools for every project. Fasteners, adhesives, measurement tools, and safety equipment from trusted brands.",
+    "image": "/assets/headers/general.jpg",
+    "productCount": 12,
+    "href": "/collections/general-hardware-tools"
+  }
+]
+

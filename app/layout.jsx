@@ -2,6 +2,7 @@ import '../styles/globals.css'
 import SmoothScroll from '@/components/SmoothScroll'
 import CursorFollower from '@/components/CursorFollower'
 import Header from '@/components/Header'
+import Footer from '@/components/Footer'
 
 export const metadata = {
   title: 'Shiv Hardware Store — Premium Hardware Solutions',
@@ -107,9 +108,10 @@ export default function RootLayout({ children }) {
             }}
           />
           <Header />
-          <main>
+          <main className="flex flex-col min-h-screen">
             {children}
           </main>
+          <Footer />
         </SmoothScroll>
       </body>
     </html>

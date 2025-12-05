@@ -1,8 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 export default function ContactForm() {
+  const searchParams = useSearchParams()
+  const product = searchParams?.get('product')
+  const collection = searchParams?.get('collection')
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,6 +18,15 @@ export default function ContactForm() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null)
+
+  useEffect(() => {
+    if (product && collection) {
+      setFormData(prev => ({
+        ...prev,
+        message: `I'm interested in learning more about: ${product}\nCollection: ${collection}\n\n`
+      }))
+    }
+  }, [product, collection])
   
   // Accessibility: aria-live region for form responses
 

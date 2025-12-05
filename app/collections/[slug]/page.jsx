@@ -1,55 +1,75 @@
-import Image from 'next/image'
+'use client'
+
+import React, { useEffect, useRef, useState, use } from 'react'
 import Link from 'next/link'
-import productsData from '@/data/products.json'
+import { cardStaggerReveal } from '@/lib/animations'
+import collectionsMetadata from '@/data/collections-metadata.json'
+import ProductImage from '@/components/ProductImage'
 
-export async function generateMetadata({ params }) {
-  const product = productsData.find(p => p.slug === params.slug)
-  return {
-    title: product ? `${product.title} — Stara Collections` : `${params.slug} — Stara Collections`,
-    description: product 
-      ? `Explore the ${product.title} collection from Stara. ${product.subtitle}. Premium doors with detailed specifications.`
-      : `Explore the ${params.slug} collection from Stara. Premium doors with detailed specifications and warranty information.`,
-  }
-}
-
-export default function CollectionDetailPage({ params }) {
-  // Find product from data file
-  const collection = productsData.find(p => p.slug === params.slug) || {
-    name: params.slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-    slug: params.slug,
-    image: '/assets/cards/card-1.jpg',
-    summary: 'Premium door collection featuring exceptional quality and craftsmanship.',
-    specs: {
-      thickness: '40 mm (other sizes available)',
-      core: 'HDF / Solid / Marine (choose)',
-      finish: 'Matte / Satin / Textured',
-      warranty: '5 years (finish) / 10 years (core)',
-    },
-  }
+export default function CollectionDetailPage({ params, searchParams }) {
+  const gridRef = useRef(null)
+  const unwrappedParams = use(params)
+  const collection = collectionsMetadata.find(c => c.slug === unwrappedParams.slug)
   
-  // Use collection data if found, otherwise use defaults
-  const product = collection ? {
-    name: collection.title || collection.name,
-    subtitle: collection.subtitle || '',
-    image: collection.image || '/assets/cards/card-1.jpg',
-    summary: collection.subtitle || 'Premium door collection featuring exceptional quality and craftsmanship.',
-    specs: {
-      thickness: '40 mm (other sizes available)',
-      core: 'HDF / Solid / Marine (choose)',
-      finish: 'Matte / Satin / Textured',
-      warranty: '5 years (finish) / 10 years (core)',
-    },
-  } : {
-    name: params.slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-    subtitle: '',
-    image: '/assets/cards/card-1.jpg',
-    summary: 'Premium door collection featuring exceptional quality and craftsmanship.',
-    specs: {
-      thickness: '40 mm (other sizes available)',
-      core: 'HDF / Solid / Marine (choose)',
-      finish: 'Matte / Satin / Textured',
-      warranty: '5 years (finish) / 10 years (core)',
-    },
+  // Load products directly from API on server side, then hydrate on client
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    
+    async function loadProducts() {
+      try {
+        const response = await fetch(`/api/collections/${unwrappedParams.slug}`, {
+          signal: controller.signal,
+          cache: 'no-store'
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          setProducts(Array.isArray(data) ? data : [])
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Error loading products:', err)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadProducts()
+    return () => controller.abort()
+  }, [unwrappedParams.slug])
+
+  useEffect(() => {
+    if (!gridRef.current || products.length === 0) return
+
+    const articles = gridRef.current.querySelectorAll('article')
+    articles.forEach((article) => {
+      article.classList.add('card')
+    })
+
+    const trigger = cardStaggerReveal(gridRef.current)
+
+    return () => {
+      if (trigger) {
+        trigger.kill()
+      }
+    }
+  }, [products])
+
+  if (!collection) {
+    return (
+      <main className="min-h-screen bg-[var(--bg)] py-16 sm:py-20">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 text-center">
+          <h1 className="text-4xl font-bold mb-4 text-[var(--fg)]">Collection Not Found</h1>
+          <Link href="/collections" className="text-[var(--accent)] hover:underline">
+            Back to Collections
+          </Link>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -58,112 +78,89 @@ export default function CollectionDetailPage({ params }) {
         <div className="container mx-auto px-4 sm:px-6 md:px-8">
           {/* Breadcrumbs */}
           <nav className="mb-8 text-sm text-[var(--muted)]">
-            <Link href="/" className="hover:text-[var(--fg)]">Home</Link>
+            <Link href="/" className="hover:text-[var(--fg)] transition-colors">Home</Link>
             <span className="mx-2">/</span>
-            <Link href="/collections" className="hover:text-[var(--fg)]">Collections</Link>
+            <Link href="/collections" className="hover:text-[var(--fg)] transition-colors">Collections</Link>
             <span className="mx-2">/</span>
-            <span className="text-[var(--fg)]">{product.name}</span>
+            <span className="text-[var(--fg)]">{collection.title}</span>
           </nav>
 
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-16">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 text-[var(--fg)]">
-                {product.name}
-              </h1>
-              <p className="text-xl md:text-2xl text-[var(--muted)] leading-relaxed max-w-3xl">
-                {product.summary}
-              </p>
-            </div>
+          {/* Collection Header */}
+          <div className="max-w-4xl mx-auto mb-16">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 text-[var(--fg)]">
+              {collection.title}
+            </h1>
+            <p className="text-xl md:text-2xl text-[var(--muted)] leading-relaxed">
+              {collection.description}
+            </p>
+            <p className="mt-4 text-[var(--muted)]">
+              {collection.productCount} products available
+            </p>
+          </div>
 
-            <div className="relative w-full aspect-[16/9] mb-12 bg-[var(--muted)]/10 overflow-hidden">
-              <Image
-                src={product.image || '/assets/card-1.jpg'}
-                alt={product.name}
-                fill
-                className="object-cover bw-image"
-                unoptimized
-              />
-              {/* Texture overlay for depth */}
-              <div 
-                className="absolute inset-0 opacity-[0.05] pointer-events-none"
-                style={{
-                  backgroundImage: 'url(/assets/texture-wood-1.jpg)',
-                  backgroundSize: 'cover',
-                }}
-              />
+          {/* Products Grid */}
+          {loading ? (
+            <div className="text-center py-20">
+              <p className="text-[var(--muted)]">Loading products...</p>
             </div>
-            
-            {/* Product Schema for SEO */}
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                  '@context': 'https://schema.org',
-                  '@type': 'Product',
-                  name: product.name,
-                  description: product.summary,
-                  image: product.image,
-                  brand: {
-                    '@type': 'Brand',
-                    name: 'Stara, Craft',
-                  },
-                }),
-              }}
-            />
-
-            <div className="grid md:grid-cols-2 gap-16 mb-16">
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold mb-8 text-[var(--fg)]">Specifications</h2>
-                <table className="w-full">
-                  <tbody className="space-y-2">
-                    <tr className="border-b border-[var(--muted)]/20">
-                      <td className="py-3 font-medium text-[var(--fg)]">Thickness:</td>
-                      <td className="py-3 text-[var(--muted)]">{product.specs.thickness}</td>
-                    </tr>
-                    <tr className="border-b border-[var(--muted)]/20">
-                      <td className="py-3 font-medium text-[var(--fg)]">Core:</td>
-                      <td className="py-3 text-[var(--muted)]">{product.specs.core}</td>
-                    </tr>
-                    <tr className="border-b border-[var(--muted)]/20">
-                      <td className="py-3 font-medium text-[var(--fg)]">Finish:</td>
-                      <td className="py-3 text-[var(--muted)]">{product.specs.finish}</td>
-                    </tr>
-                    <tr className="border-b border-[var(--muted)]/20">
-                      <td className="py-3 font-medium text-[var(--fg)]">Warranty:</td>
-                      <td className="py-3 text-[var(--muted)]">{product.specs.warranty}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div>
-                <h2 className="text-2xl font-bold mb-6 text-[var(--fg)]">Learn More</h2>
-                <div className="space-y-4">
-                  <a
-                    href="/contact"
-                    className="block w-full bg-[var(--accent)] text-[var(--bg)] px-6 py-4 text-center font-medium hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors duration-300 hover-scale"
-                  >
-                    Inquire
-                  </a>
-                  <a
-                    href="/dealer-locator"
-                    className="block w-full border border-[var(--accent)] text-[var(--accent)] px-6 py-4 text-center font-medium hover:bg-[var(--accent)] hover:text-[var(--bg)] transition-colors duration-300 hover-scale"
-                  >
-                    Find a Dealer
-                  </a>
-                  <a
-                    href="/about"
-                    className="block w-full border border-[var(--muted)]/30 text-[var(--fg)] px-6 py-4 text-center font-medium hover:border-[var(--accent)] transition-colors duration-300 hover-scale"
-                  >
-                    Our Craft
-                  </a>
-                </div>
-              </div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-[var(--muted)]">No products found in this collection.</p>
             </div>
+          ) : (
+            <div
+              ref={gridRef}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+            >
+              {products.map((product, index) => {
+
+                return (
+                  <Link
+                    key={product.slug || index}
+                    href={`/products/${unwrappedParams.slug}/${product.slug}`}
+                    className="group"
+                  >
+                    <article className="relative h-full overflow-hidden rounded-lg bg-[var(--muted)]/5 hover-lift">
+                      {/* Product Image */}
+                      <div className="relative aspect-square overflow-hidden bg-[var(--muted)]/10">
+                        <ProductImage
+                          collectionSlug={unwrappedParams.slug}
+                          productSlug={product.slug}
+                          productName={product.name}
+                          remoteImageUrl={product.imageUrl}
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      </div>
+
+                      {/* Product Info */}
+                      <div className="p-4 md:p-6">
+                        <h3 className="text-lg md:text-xl font-bold mb-2 text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors line-clamp-2">
+                          {product.name}
+                        </h3>
+                        <div className="mt-4 text-sm text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <span className="uppercase tracking-wider">View Details →</span>
+                        </div>
+                      </div>
+                    </article>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Back to Collections */}
+          <div className="mt-16 text-center">
+            <Link
+              href="/collections"
+              className="inline-block border border-[var(--muted)]/30 text-[var(--fg)] px-8 py-4 font-medium hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors duration-300 hover-scale"
+            >
+              ← Back to All Collections
+            </Link>
           </div>
         </div>
       </section>
     </main>
   )
 }
-
