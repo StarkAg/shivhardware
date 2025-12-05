@@ -270,8 +270,26 @@ export default function AluminiumDoorPage() {
             </div>
           </div>
 
-          {/* Print Quote Button */}
-          <div className="mb-8 text-center">
+          {/* Action Buttons */}
+          <div className="mb-8 flex items-center justify-center gap-6">
+            <button
+              onClick={() => {
+                setHeight(70)
+                setWidth(83)
+                setHeightSoot(7)
+                setWidthSoot(1)
+                setChaukhat(true)
+                setAccessories(true)
+                setDecorFilm(false)
+                setBrownCoated(false)
+                setSelectedThickness('1.2 MM')
+                setShowPrintDetails(false)
+              }}
+              className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition-colors underline"
+            >
+              Reset
+            </button>
+            <span className="text-[var(--muted)]">|</span>
             <button
               onClick={() => setShowPrintDetails(!showPrintDetails)}
               className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition-colors underline"
