@@ -20,17 +20,10 @@ export default function CalculatorsPage() {
     },
     {
       id: 2,
-      title: '2 Track Window',
-      subtitle: 'Area-based rates and premium glass options',
+      title: 'Window Calculator',
+      subtitle: '2 Track and 3 Track windows with area-based rates and premium glass options',
       image: '/assets/card-2.jpg',
       href: '/window-2track',
-    },
-    {
-      id: 3,
-      title: '3 Track Window',
-      subtitle: 'With half SS net and customization options',
-      image: '/assets/card-1.jpg',
-      href: '/window-3track',
     },
   ]
 

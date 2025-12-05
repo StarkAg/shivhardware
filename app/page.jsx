@@ -1,6 +1,7 @@
 import Hero from '@/components/Hero'
 import CollectionShowcase from '@/components/ProductGrid' // Component renamed but file stays ProductGrid.jsx
 import ValueProps from '@/components/ValueProps'
+import collectionsMetadata from '@/data/collections-metadata.json'
 
 export default function Home() {
   return (
@@ -23,12 +24,10 @@ export default function Home() {
         ]}
         ctas={[
           { text: 'Explore Collections', href: '/collections', variant: 'primary' },
-          { text: 'Our Craft', href: '/about', variant: 'secondary' },
+          { text: 'Our Craft', href: 'https://wa.me/918092850954?text=Hi%2C%20I%20am%20interested%20in%20the%20Products%20you%20are%20offering.', variant: 'secondary' },
         ]}
         kicker="Craftsmanship | Heritage | Modern Manufacturing"
       />
-      
-      <ValueProps />
       
       <section id="collections" className="bg-[var(--bg)]">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 pt-16 sm:pt-20">
@@ -41,9 +40,11 @@ export default function Home() {
               Explore our range of thoughtfully designed doors.
             </p>
           </div>
-          <CollectionShowcase />
+          <CollectionShowcase collections={collectionsMetadata} />
         </div>
       </section>
+      
+      <ValueProps />
     </main>
   )
 }

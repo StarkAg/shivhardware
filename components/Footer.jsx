@@ -35,7 +35,7 @@ export default function Footer() {
                 href="#"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-[var(--muted)]/20 hover:bg-[var(--muted)]/30 flex items-center justify-center transition-colors text-[var(--fg)]"
+                className="w-10 h-10 rounded bg-[var(--muted)]/20 hover:bg-[var(--muted)]/30 flex items-center justify-center transition-colors text-[var(--fg)]"
                 aria-label="Facebook"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -46,7 +46,7 @@ export default function Footer() {
                 href="#"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-[var(--muted)]/20 hover:bg-[var(--muted)]/30 flex items-center justify-center transition-colors text-[var(--fg)]"
+                className="w-10 h-10 rounded bg-[var(--muted)]/20 hover:bg-[var(--muted)]/30 flex items-center justify-center transition-colors text-[var(--fg)]"
                 aria-label="Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -57,7 +57,7 @@ export default function Footer() {
                 href="#"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-[var(--muted)]/20 hover:bg-[var(--muted)]/30 flex items-center justify-center transition-colors text-[var(--fg)]"
+                className="w-10 h-10 rounded bg-[var(--muted)]/20 hover:bg-[var(--muted)]/30 flex items-center justify-center transition-colors text-[var(--fg)]"
                 aria-label="YouTube"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

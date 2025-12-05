@@ -68,6 +68,26 @@
     "image": "/assets/headers/general.jpg",
     "productCount": 12,
     "href": "/collections/general-hardware-tools"
+  },
+  {
+    "id": 8,
+    "slug": "aluminium-door",
+    "title": "Aluminium Door Calculator",
+    "subtitle": "Smart price calculator for aluminium doors",
+    "description": "Calculate accurate pricing for aluminium doors with chaukhat, ready for wet areas. Configure dimensions, thickness, and add-ons.",
+    "image": "/assets/card-1.jpg",
+    "productCount": 0,
+    "href": "/aluminium-door"
+  },
+  {
+    "id": 9,
+    "slug": "window-calculator",
+    "title": "Window Calculator",
+    "subtitle": "2 Track and 3 Track window pricing calculator",
+    "description": "Calculate pricing for 2-track and 3-track windows with area-based rates and premium glass options. Configure dimensions and add-ons.",
+    "image": "/assets/card-2.jpg",
+    "productCount": 0,
+    "href": "/window-2track"
   }
 ]
 

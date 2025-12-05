@@ -1,8 +1,5 @@
 import '../styles/globals.css'
-import SmoothScroll from '@/components/SmoothScroll'
-import CursorFollower from '@/components/CursorFollower'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import Providers from '@/components/Providers'
 
 export const metadata = {
   title: 'Shiv Hardware Store — Premium Hardware Solutions',
@@ -98,21 +95,16 @@ export default function RootLayout({ children }) {
         <link rel="preload" as="image" href="/assets/hero-video-frame.jpg" />
       </head>
       <body className="font-sans">
-        <SmoothScroll>
-          <CursorFollower />
-          {/* Structured JSON-LD Data */}
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(organizationSchema),
-            }}
-          />
-          <Header />
-          <main className="flex flex-col min-h-screen">
-            {children}
-          </main>
-          <Footer />
-        </SmoothScroll>
+        {/* Structured JSON-LD Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )

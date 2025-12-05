@@ -194,3 +194,330 @@
   }
 }
 
+/* Print Styles - Single A4 Page */
+@media print {
+  /* Hide non-essential elements when printing */
+  header,
+  footer,
+  nav,
+  button,
+  .cursor-follower,
+  .no-print,
+  aside,
+  .hide-print {
+    display: none !important;
+  }
+
+  /* Page setup - Single A4 page */
+  @page {
+    size: A4;
+    margin: 0.8cm;
+  }
+
+  html, body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  /* Reset body for print - compact */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 7pt;
+    line-height: 1.1;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    transform: scale(0.85);
+    transform-origin: top left;
+    width: 117.6%; /* Compensate for scale */
+  }
+
+  /* Ensure everything fits on one page */
+  main, section {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 285mm !important;
+    margin: 0 !important;
+    padding: 3px !important;
+    page-break-inside: avoid !important;
+    overflow: hidden !important;
+  }
+
+  /* Ensure proper contrast for print */
+  * {
+    color: black !important;
+  }
+
+  /* Table styling for print - compact */
+  table {
+    width: 100% !important;
+    border-collapse: collapse;
+    margin: 2px 0 !important;
+    font-size: 6pt;
+    page-break-inside: avoid !important;
+  }
+
+  th, td {
+    border: 1px solid #333 !important;
+    padding: 2px 3px !important;
+    text-align: left;
+    background: white !important;
+    font-size: 6pt !important;
+  }
+
+  th {
+    background-color: #f5f5f5 !important;
+    font-weight: bold;
+    font-size: 6pt !important;
+  }
+
+  /* Print-specific typography - smaller */
+  h1, h2, h3, h4, h5, h6 {
+    color: black !important;
+    margin: 1px 0 !important;
+    font-size: 8pt !important;
+    page-break-after: avoid !important;
+  }
+
+  h1 { font-size: 10pt !important; }
+  h2 { font-size: 9pt !important; }
+  h3 { font-size: 8pt !important; }
+
+  p {
+    margin: 1px 0 !important;
+    font-size: 7pt !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Force single page - no page breaks */
+  * {
+    page-break-inside: avoid !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    orphans: 0 !important;
+    widows: 0 !important;
+  }
+
+  /* Prevent any second page - force everything on one page */
+  html {
+    height: 100% !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+  }
+
+  body {
+    height: 100% !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+  }
+
+  main {
+    max-height: 287mm !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+  }
+
+  section {
+    max-height: 287mm !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Ensure borders are visible in print */
+  .border,
+  [class*="border"] {
+    border-color: #333 !important;
+  }
+
+  /* Clean layout for print */
+  .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Hide backgrounds and shadows in print */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background: white !important;
+  }
+
+  /* Compact spacing */
+  div {
+    margin: 1px 0 !important;
+    padding: 2px !important;
+  }
+
+  /* Compact grid layout for print */
+  .grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 5px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Compact spacing for single page */
+  .space-y-8 > * + * {
+    margin-top: 2px !important;
+  }
+
+  .space-y-6 > * + * {
+    margin-top: 1px !important;
+  }
+
+  .mb-8, .mb-12 {
+    margin-bottom: 2px !important;
+  }
+
+  .mt-6, .mt-8 {
+    margin-top: 1px !important;
+  }
+
+  .p-8, .p-6, .p-4 {
+    padding: 3px !important;
+  }
+
+  /* Reduce all margins and padding */
+  * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Only allow minimal spacing */
+  .space-y-8, .space-y-6, .space-y-4 {
+    gap: 2px !important;
+  }
+
+  /* Scale down door diagram container */
+  [style*="height: 600px"],
+  [style*="height: '600px'"] {
+    height: 100px !important;
+    max-height: 100px !important;
+  }
+
+  /* Scale down door visual */
+  [class*="Door Visual"],
+  [class*="door-visual"] {
+    max-height: 100px !important;
+  }
+
+  /* Scale down inputs and buttons */
+  input, select, button {
+    font-size: 7pt !important;
+    padding: 2px 4px !important;
+    margin: 1px 0 !important;
+    height: auto !important;
+  }
+
+  /* Smaller labels */
+  label {
+    font-size: 7pt !important;
+    margin: 1px 0 !important;
+  }
+
+  /* Compact total box */
+  [class*="Total"] {
+    padding: 5px !important;
+    margin: 3px 0 !important;
+  }
+
+  /* Scale down area display */
+  [class*="Area Display"],
+  [class*="area-display"] {
+    font-size: 6pt !important;
+    padding: 2px !important;
+  }
+
+  /* Ensure all content fits */
+  .grid-cols-1,
+  .lg\\:grid-cols-2 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3px !important;
+  }
+}
+
+/* Print Styles */
+@media print {
+  /* Hide non-essential elements when printing */
+  header,
+  footer,
+  nav,
+  button:not(.print-only),
+  .cursor-follower,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* Ensure proper contrast for print */
+  * {
+    color: black !important;
+    background: white !important;
+  }
+
+  /* Table styling for print */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+    page-break-inside: avoid;
+  }
+
+  th, td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold;
+  }
+
+  /* Print-specific typography */
+  h1, h2, h3 {
+    color: black !important;
+    page-break-after: avoid;
+  }
+
+  /* Prevent page breaks inside important sections */
+  .print-section {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure borders are visible in print */
+  .border,
+  [class*="border"] {
+    border-color: #000 !important;
+  }
+
+  /* Clean layout for print */
+  .container {
+    max-width: 100%;
+    padding: 0;
+  }
+}
+

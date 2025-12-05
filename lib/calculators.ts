@@ -41,8 +41,8 @@ export const aluminiumDoorRates: Record<AluminiumDoorThickness, AluminiumDoorRat
 };
 
 export interface AluminiumDoorInputs {
-  height: number;
-  width: number;
+  height?: number;
+  width?: number;
   heightSoot: number;
   widthSoot: number;
   selectedThickness: AluminiumDoorThickness;
@@ -75,11 +75,24 @@ export function calculateAluminiumDoor(
 ): AluminiumDoorCalculations {
   const { height, width, heightSoot, widthSoot, selectedThickness, chaukhat, accessories, decorFilm, brownCoated } = inputs;
 
-  const heightInch = heightSoot > 0 ? height + heightSoot / 8 : height;
-  const widthInch = widthSoot > 0 ? width + widthSoot / 8 : width;
-  const area = Math.round(((heightInch * widthInch) / 144) * 100) / 100;
+  // Maximum limits: height 84, width 36
+  const MAX_HEIGHT = 84;
+  const MAX_WIDTH = 36;
+
+  // Default values in backend: use 65 for height, 30 for width if not provided
+  // Clamp to maximum limits
+  const defaultHeight = Math.min(height ?? 65, MAX_HEIGHT);
+  const defaultWidth = Math.min(width ?? 30, MAX_WIDTH);
+
+  const heightInch = heightSoot > 0 ? defaultHeight + heightSoot / 8 : defaultHeight;
+  const widthInch = widthSoot > 0 ? defaultWidth + widthSoot / 8 : defaultWidth;
+  
+  // Ensure final dimensions don't exceed maximum limits
+  const finalHeightInch = Math.min(heightInch, MAX_HEIGHT);
+  const finalWidthInch = Math.min(widthInch, MAX_WIDTH);
+  const area = Math.round(((finalHeightInch * finalWidthInch) / 144) * 100) / 100;
   const chaukhatRft = Math.max(
-    Math.round(((heightInch * 2 + widthInch) / 12) * 100) / 100,
+    Math.round(((finalHeightInch * 2 + finalWidthInch) / 12) * 100) / 100,
     14.5
   );
 
@@ -94,14 +107,14 @@ export function calculateAluminiumDoor(
   const total = doorCost + chaukhatCost + accessoriesCost;
   const addonsTotal = decorFilmCost + brownCoatedCost;
 
-  const heightDisplay = heightSoot > 0 ? `${height} ${heightSoot}/8''` : `${height}''`;
-  const widthDisplay = widthSoot > 0 ? `${width} ${widthSoot}/8''` : `${width}''`;
+  const heightDisplay = heightSoot > 0 ? `${defaultHeight} ${heightSoot}/8''` : `${defaultHeight}''`;
+  const widthDisplay = widthSoot > 0 ? `${defaultWidth} ${widthSoot}/8''` : `${defaultWidth}''`;
   const sizeDisplay = `${heightDisplay}  X  ${widthDisplay}`;
   const approvedName = `${heightDisplay} X  ${widthDisplay} Aluminium Door`;
 
   return {
-    heightInch,
-    widthInch,
+    heightInch: finalHeightInch,
+    widthInch: finalWidthInch,
     area,
     chaukhatRft,
     doorCost,
