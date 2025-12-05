@@ -1,8 +1,9 @@
+import { Suspense } from 'react'
 import ContactForm from '@/components/ContactForm'
 
 export const metadata = {
-  title: 'Custom Orders — Stara',
-  description: 'Request a custom door order. Any size, any finish. In-house design consultation available. Lead times: 4–8 weeks.',
+  title: 'Custom Orders — Shiv Hardware Store',
+  description: 'Request a custom order. Any size, any finish. In-house design consultation available. Lead times: 4–8 weeks.',
 }
 
 export default function CustomPage() {
@@ -23,19 +24,19 @@ export default function CustomPage() {
           <div className="max-w-2xl mx-auto">
             <div className="max-w-3xl mx-auto mb-16">
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 text-[var(--fg)]">
-                Custom Atelier
+                Custom Orders
               </h1>
               <p className="text-xl md:text-2xl text-[var(--muted)] leading-relaxed mb-12">
                 Made to order. Any size, any finish. In-house design consultation available. 
-                Each custom door is a collaboration between you and our craftspeople.
+                Each custom order is a collaboration between you and our team.
               </p>
               
               <div className="space-y-6 text-[var(--fg)] mb-16">
                 <div>
                   <h2 className="text-2xl font-bold mb-4">The Process</h2>
                   <p className="text-lg text-[var(--muted)] leading-relaxed mb-6">
-                    Our custom atelier works with you to create doors that are uniquely yours. 
-                    From initial consultation to final installation, we guide you through every step.
+                    Our custom service works with you to create products that are uniquely yours. 
+                    From initial consultation to final delivery, we guide you through every step.
                   </p>
                 </div>
                 
@@ -58,14 +59,16 @@ export default function CustomPage() {
                     <span className="mr-4 text-[var(--accent)] text-xl">•</span>
                     <div>
                       <span className="font-medium block mb-1">Lead times: 4–8 weeks</span>
-                      <span className="text-[var(--muted)]">From consultation to installation</span>
+                      <span className="text-[var(--muted)]">From consultation to delivery</span>
                     </div>
                   </li>
                 </ul>
               </div>
             </div>
             
-            <ContactForm />
+            <Suspense fallback={<div className="text-[var(--muted)]">Loading form...</div>}>
+              <ContactForm />
+            </Suspense>
           </div>
         </div>
       </section>
