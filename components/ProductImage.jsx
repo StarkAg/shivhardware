@@ -44,6 +44,8 @@ export default function ProductImage({
       sizes={sizes}
       onError={handleError}
       unoptimized={imageSrc.startsWith('http')}
+      loading="lazy"
+      quality={85}
     />
   )
 }
