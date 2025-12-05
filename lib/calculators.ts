@@ -94,8 +94,8 @@ export function calculateAluminiumDoor(
   const total = doorCost + chaukhatCost + accessoriesCost;
   const addonsTotal = decorFilmCost + brownCoatedCost;
 
-  const heightDisplay = heightSoot > 0 ? `${height} ${heightSoot}/8''` : `${height} ''`;
-  const widthDisplay = widthSoot > 0 ? `${width} ${widthSoot}/8''` : `${width} ''`;
+  const heightDisplay = heightSoot > 0 ? `${height} ${heightSoot}/8''` : `${height}''`;
+  const widthDisplay = widthSoot > 0 ? `${width} ${widthSoot}/8''` : `${width}''`;
   const sizeDisplay = `${heightDisplay}  X  ${widthDisplay}`;
   const approvedName = `${heightDisplay} X  ${widthDisplay} Aluminium Door`;
 
@@ -214,8 +214,8 @@ export function calculateWindow2Track(
   const total = glassCost + chaukhatCost;
   const addonsTotal = decorFilmCost + fullSSNetCost + brownCoatedCost;
 
-  const heightDisplay = heightSoot > 0 ? `${height} ${heightSoot}/8''` : `${height} ''`;
-  const widthDisplay = widthSoot > 0 ? `${width} ${widthSoot}/8''` : `${width} ''`;
+  const heightDisplay = heightSoot > 0 ? `${height} ${heightSoot}/8''` : `${height}''`;
+  const widthDisplay = widthSoot > 0 ? `${width} ${widthSoot}/8''` : `${width}''`;
   const sizeDisplay = `${heightDisplay}  X  ${widthDisplay}`;
   const approvedName = `${heightDisplay} X  ${widthDisplay}  2 Track Aluminium Window`;
 
@@ -328,8 +328,8 @@ export function calculateWindow3Track(
   const total = glassCost + chaukhatCost;
   const addonsTotal = decorFilmCost + ssNetCost + brownCoatedCost;
 
-  const heightDisplay = heightSoot > 0 ? `${height} ${heightSoot}/8''` : `${height} ''`;
-  const widthDisplay = widthSoot > 0 ? `${width} ${widthSoot}/8''` : `${width} ''`;
+  const heightDisplay = heightSoot > 0 ? `${height} ${heightSoot}/8''` : `${height}''`;
+  const widthDisplay = widthSoot > 0 ? `${width} ${widthSoot}/8''` : `${width}''`;
   const sizeDisplay = `${heightDisplay}  X  ${widthDisplay}`;
   const approvedName = `${heightDisplay} X  ${widthDisplay}  3 Track Aluminium Window`;
 
