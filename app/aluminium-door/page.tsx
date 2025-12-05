@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Hero from '@/components/Hero'
 import {
   calculateAluminiumDoor,
   aluminiumDoorRates,
@@ -40,16 +39,18 @@ export default function AluminiumDoorPage() {
 
   return (
     <main className="min-h-screen">
-      <Hero
-        title="Aluminium Door"
-        subtitle="We Provide a Smart Price Calculator for Your Needs"
-        mediaType="image"
-        mediaSrc="/assets/showroom-1.jpg"
-        ctas={[
-          { text: 'View Collections', href: '/collections', variant: 'primary' },
-          { text: 'All Calculators', href: '/calculators', variant: 'secondary' },
-        ]}
-      />
+      <div className="bg-[var(--bg)] py-16 sm:py-20 md:py-24">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 text-[var(--fg)]">
+              Aluminium Door
+            </h1>
+            <p className="text-lg md:text-xl text-[var(--muted)] leading-relaxed">
+              We Provide a Smart Price Calculator for Your Needs
+            </p>
+          </div>
+        </div>
+      </div>
 
       <section className="bg-[var(--bg)] py-16 sm:py-20 md:py-24 relative overflow-hidden">
         <div
