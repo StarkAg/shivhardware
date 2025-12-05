@@ -25,7 +25,7 @@ export default function Header() {
       ].join(' ')}
       aria-label="Main navigation"
     >
-      <div className="w-full px-3 sm:px-5 md:px-8 py-4 sm:py-5 md:py-6 flex items-center justify-end gap-6 relative">
+      <div className="w-full px-3 sm:px-5 md:px-8 py-4 sm:py-5 md:py-6 flex items-center justify-between gap-6 relative">
         {/* Logo - Shiv Hardware Store */}
         <Link href="/" className="flex items-center hover-scale gap-3 absolute left-3 sm:left-5 md:left-8" aria-label="Shiv Hardware Store home">
           <div className="relative w-10 h-10 sm:w-12 sm:h-12">
@@ -43,8 +43,20 @@ export default function Header() {
           </span>
         </Link>
 
+        {/* Page Title - Centered (for aluminium-door page) */}
+        {pathname === '/aluminium-door' && (
+          <div className="absolute left-1/2 -translate-x-1/2 text-center">
+            <h1 className="text-lg sm:text-xl font-bold text-white mb-0.5">
+              Aluminium Door
+            </h1>
+            <p className="text-xs sm:text-sm text-white/80">
+              We Provide a Smart Price Calculator for Your Needs
+            </p>
+          </div>
+        )}
+
         {/* Nav links */}
-        <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-sm">
+        <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-sm ml-auto">
           {navItems.map((item) => {
             const active = pathname === item.href
             return (
