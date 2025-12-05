@@ -2,7 +2,7 @@
 
 A modern e-commerce website for Shiv Hardware Store, built with Next.js 15. Features product collections, pricing calculators for aluminium doors and windows, and a complete shopping experience.
 
-🌐 **Live Site**: [https://shiv-hardware-store.vercel.app](https://shiv-hardware-store.vercel.app)  
+🌐 **Live Site**: [https://shivhardware.store](https://shivhardware.store)  
 📦 **Repository**: [https://github.com/StarkAg/shivhardware](https://github.com/StarkAg/shivhardware)
 
 ## Features
@@ -125,7 +125,7 @@ The site is deployed on Vercel with automatic deployments from GitHub.
 
 1. Push to GitHub: `git push origin main`
 2. Vercel automatically builds and deploys
-3. Site available at: `https://shiv-hardware-store.vercel.app`
+3. Site available at: `https://shivhardware.store`
 
 ## Environment Variables
 

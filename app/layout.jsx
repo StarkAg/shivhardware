@@ -16,7 +16,7 @@ export const metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://shivhardware.com', // TODO: Replace with actual domain
+    url: 'https://shivhardware.store',
     siteName: 'Shiv Hardware Store',
     title: 'Shiv Hardware Store — Premium Hardware Solutions',
     description: 'Complete hardware solutions for modern builders. Configure custom doors and windows with accurate pricing calculators.',
@@ -41,7 +41,7 @@ export const metadata = {
 
   // Canonical URL
   alternates: {
-    canonical: 'https://stara.com', // TODO: Replace with actual domain
+    canonical: 'https://shivhardware.store',
   },
 
   // Robots
@@ -71,8 +71,8 @@ const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Shiv Hardware Store',
-  url: 'https://shivhardware.com', // TODO: Replace with actual domain
-  logo: 'https://shivhardware.com/White%20Logo.png',
+  url: 'https://shivhardware.store',
+  logo: 'https://shivhardware.store/White%20Logo.png',
   sameAs: [],
   contactPoint: [{
     '@type': 'ContactPoint',

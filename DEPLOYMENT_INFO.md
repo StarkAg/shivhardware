@@ -9,16 +9,11 @@ Your Shiv Hardware Store is now live!
 - **Status**: Connected to Vercel
 
 ### Production URLs
-- **Main URL**: https://shiv-hardware-store-55c801k7n-starkags-projects.vercel.app
+- **Live Site**: https://shivhardware.store
 - **Vercel Dashboard**: https://vercel.com/starkags-projects/shiv-hardware-store
 
 ### Custom Domain
-You have `shivhardware.store` in your Vercel account. To connect it:
-
-1. Go to: https://vercel.com/starkags-projects/shiv-hardware-store/settings/domains
-2. Click "Add Domain"
-3. Enter: `shivhardware.store`
-4. Follow DNS configuration instructions
+✅ Custom domain `shivhardware.store` is connected and live!
 
 ### Features Deployed
 ✅ E-commerce site structure
