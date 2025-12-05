@@ -39,20 +39,20 @@ export default function AluminiumDoorPage() {
 
   return (
     <main className="min-h-screen">
-      <div className="bg-[var(--bg)] pt-24 pb-8">
+      <div className="bg-[var(--bg)] pt-24 pb-4">
         <div className="container mx-auto px-4 sm:px-6 md:px-8">
           <div className="text-left">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--fg)]">
               Aluminium Door
             </h1>
-            <p className="text-sm md:text-base text-[var(--muted)]">
+            <p className="text-sm md:text-base text-[var(--muted)] mb-0">
               We Provide a Smart Price Calculator for Your Needs
             </p>
           </div>
         </div>
       </div>
 
-      <section className="bg-[var(--bg)] py-16 sm:py-20 md:py-24 relative overflow-hidden">
+      <section className="bg-[var(--bg)] pt-8 pb-16 sm:py-20 md:py-24 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
