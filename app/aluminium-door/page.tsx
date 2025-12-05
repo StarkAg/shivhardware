@@ -260,6 +260,29 @@ export default function AluminiumDoorPage() {
             </div>
           </div>
 
+          {/* Total Box */}
+          <div className="mb-8">
+            <div className="border-2 border-[var(--accent)]/50 p-6 bg-black/30 backdrop-blur-sm rounded-lg text-center">
+              <p className="text-sm uppercase tracking-wider text-[var(--muted)] mb-2">Total</p>
+              <p className="text-4xl sm:text-5xl font-bold text-[var(--accent)]">
+                ₹{Math.round(calculations.total + calculations.addonsTotal)}
+              </p>
+            </div>
+          </div>
+
+          {/* Print Quote Button */}
+          <div className="mb-8 text-center">
+            <button
+              onClick={() => setShowPrintDetails(!showPrintDetails)}
+              className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition-colors underline"
+            >
+              {showPrintDetails ? 'Hide Details' : 'Print Quote'}
+            </button>
+          </div>
+
+          {/* Detailed Breakdown - Hidden by default */}
+          {showPrintDetails && (
+            <>
           {/* Detailed Breakdown */}
           <div className="border border-[var(--muted)]/20 overflow-x-auto mb-8 rounded-lg">
             <table className="w-full">
