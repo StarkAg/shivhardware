@@ -95,15 +95,15 @@ export default function RootLayout({ children }) {
         <link rel="preload" as="image" href="/assets/hero-video-frame.jpg" />
       </head>
       <body className="font-sans">
-        {/* Structured JSON-LD Data */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationSchema),
-          }}
-        />
+          {/* Structured JSON-LD Data */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(organizationSchema),
+            }}
+          />
         <Providers>
-          {children}
+            {children}
         </Providers>
       </body>
     </html>

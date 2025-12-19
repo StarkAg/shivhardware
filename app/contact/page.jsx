@@ -31,7 +31,7 @@ export default function ContactPage() {
             </p>
             
             <Suspense fallback={<div className="text-[var(--muted)]">Loading form...</div>}>
-              <ContactForm />
+            <ContactForm />
             </Suspense>
           </div>
         </div>

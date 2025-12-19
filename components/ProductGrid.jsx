@@ -48,10 +48,10 @@ export default function CollectionShowcase({ collections = [] }) {
 
   return (
     <section className="container mx-auto px-4 sm:px-6 md:px-8 py-16 sm:py-20 md:py-24">
-          <div
-            ref={gridRef}
+      <div
+        ref={gridRef}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
-          >
+      >
         {displayCollections.map((collection, index) => (
           <Link
             key={collection.id}

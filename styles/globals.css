@@ -8,6 +8,9 @@
   --fg: #ffffff;
   --muted: #999;
   --accent: #ffffff;
+  --box-bg: rgba(0, 0, 0, 0.2); /* Universal box background color - black with 80% transparency */
+  --box-bg-track: rgba(0, 0, 0, 0.2); /* D buttons track background - black with 80% transparency */
+  --box-bg-door: rgba(0, 0, 0, 0.2); /* Door visual container background - black with 80% transparency */
 }
 
 /* Base Styles - Mobile First */

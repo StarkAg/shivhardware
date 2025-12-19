@@ -26,6 +26,10 @@ export default function AluminiumDoorPage() {
   const [heightWarning, setHeightWarning] = useState<string | null>(null)
   const [widthWarning, setWidthWarning] = useState<string | null>(null)
 
+  // Texture controls
+  const [selectedTexture, setSelectedTexture] = useState<string>('Texture2.jpg')
+  const [textureOpacity, setTextureOpacity] = useState<number>(0.1)
+
   const calculations = useMemo(() => {
     return calculateAluminiumDoor({
       height: height === '' ? undefined : height,
@@ -79,25 +83,66 @@ export default function AluminiumDoorPage() {
   const scaledWidth = calculations.widthInch * scaleFactor
   const scaledHeight = calculations.heightInch * scaleFactor
 
+  // Texture background style with opacity
+  const textureBgStyle = {
+    backgroundImage: `url(/${selectedTexture})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    opacity: textureOpacity,
+  }
+
   return (
     <main className="min-h-screen">
       <section className="bg-[var(--bg)] pt-24 pb-16 sm:py-20 md:py-24 relative overflow-hidden">
+        {/* Texture Background */}
         <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: 'url(/Gemini_Generated_Image_foqkoofoqkoofoqk-2.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
+          className="absolute inset-0"
+          style={textureBgStyle}
         />
+        
+        {/* Texture Controls Panel - Hidden */}
+        <div className="absolute top-24 right-4 z-50 bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg p-4 space-y-3 min-w-[200px] hidden">
+          <div className="text-white text-sm font-semibold mb-2">Texture Controls</div>
+          
+          {/* Texture Selection */}
+          <div>
+            <label className="text-white text-xs mb-1 block">Texture:</label>
+            <select
+              value={selectedTexture}
+              onChange={(e) => setSelectedTexture(e.target.value)}
+              className="w-full bg-black/50 border border-white/30 rounded px-2 py-1 text-white text-xs"
+            >
+              <option value="Texture1.png">Texture 1</option>
+              <option value="Texture2.jpg">Texture 2</option>
+              <option value="Texture3.png">Texture 3</option>
+            </select>
+          </div>
+          
+          {/* Texture Opacity Slider */}
+          <div>
+            <label className="text-white text-xs mb-1 block">
+              Texture Opacity: {(textureOpacity * 100).toFixed(0)}%
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={textureOpacity}
+              onChange={(e) => setTextureOpacity(parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </div>
+        </div>
 
         <div className="container mx-auto px-4 sm:px-6 md:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
             {/* Left Side - Door Diagram */}
             <div className="space-y-6 flex flex-col">
-              <div className="border border-[var(--muted)]/20 p-8 bg-black/20 backdrop-blur-sm rounded-lg relative" style={{ height: '700px' }}>
+              <div className="border border-[var(--muted)]/20 p-8 backdrop-blur-sm rounded-lg relative" style={{ height: '700px', backgroundColor: 'var(--box-bg-door)' }}>
                 {/* Area Display - Corner of Box */}
-                <div className="absolute top-2 right-2 text-center p-1.5 bg-[var(--bg)]/90 border border-[var(--muted)]/30 rounded shadow-lg backdrop-blur-sm z-10">
+                <div className="absolute top-2 right-2 text-center p-1.5 backdrop-blur-md border border-white/20 rounded shadow-lg z-10" style={{ backgroundColor: 'var(--box-bg)' }}>
                   <p className="text-[9px] text-[var(--muted)] mb-0.5 leading-tight">Area</p>
                   <p className="text-[10px] font-semibold text-[var(--fg)] leading-tight">{areaInM2} m²</p>
                   <p className="text-[9px] text-[var(--muted)]/70 leading-tight">({calculations.area} Sqft)</p>
@@ -175,208 +220,180 @@ export default function AluminiumDoorPage() {
             </div>
 
             {/* Right Side - Inputs and Options */}
-            <div className="space-y-8">
-              {/* Dimension Inputs */}
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--fg)]">Height</label>
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <input
-                        type="number"
-                        value={height}
-                        onChange={(e) => {
-                          const value = e.target.value
-                          if (value === '') {
-                            setHeight('')
-                            setHeightWarning(null)
-                            return
-                          }
-                          
-                          const numValue = Number(value)
-                          const totalHeight = numValue + (heightSoot / 8)
-                          
-                          if (numValue > MAX_HEIGHT) {
-                            setHeightWarning(`Maximum height is ${MAX_HEIGHT}". Value will be clamped to ${MAX_HEIGHT}".`)
-                            setHeight(MAX_HEIGHT)
-                          } else if (totalHeight > MAX_HEIGHT) {
-                            setHeightWarning(`Total height (${numValue}" + ${heightSoot}/8) exceeds maximum of ${MAX_HEIGHT}". Please reduce height or soot.`)
-                            // Don't set height if total exceeds, just warn
-                            setHeight(numValue)
-                          } else {
-                            setHeightWarning(null)
-                            setHeight(numValue)
-                          }
-                        }}
-                        max={MAX_HEIGHT}
-                        min={1}
-                        className={`w-full border bg-[var(--bg)] px-4 py-3 text-[var(--fg)] focus:outline-none transition-colors rounded ${
-                          heightWarning 
-                            ? 'border-red-500 focus:border-red-500' 
-                            : 'border-[var(--muted)]/30 focus:border-[var(--accent)]'
-                        }`}
-                        placeholder="65"
-                      />
-                      {heightWarning && (
-                        <p className="mt-1 text-xs text-red-500">{heightWarning}</p>
-                      )}
+            <div className="space-y-6 flex flex-col items-center mt-2">
+              <div className="flex items-center gap-10 justify-center w-full">
+                {/* Dimensions Grid Section */}
+                <div className="flex flex-col items-center">
+                  {/* Grid with inputs */}
+                  <div className="flex items-center gap-4 relative -mt-[1.175rem]">
+                    {/* Height Label - Centered above Height column */}
+                    <div className="absolute left-6 -top-[26px] w-32 flex items-center justify-center">
+                      <span className="text-sm text-[var(--fg)]">Height</span>
                     </div>
-                    <select
-                      value={heightSoot}
-                      onChange={(e) => {
-                        const newSoot = Number(e.target.value)
-                        const currentHeight = height === '' ? 65 : height
-                        const totalHeight = currentHeight + (newSoot / 8)
-                        
-                        if (totalHeight > MAX_HEIGHT) {
-                          setHeightWarning(`Total height (${currentHeight}" + ${newSoot}/8 = ${totalHeight.toFixed(2)}") exceeds maximum of ${MAX_HEIGHT}". Please reduce height or soot.`)
-                        } else {
-                          setHeightWarning(null)
-                        }
-                        setHeightSoot(newSoot)
-                      }}
-                      className="w-24 border border-[var(--muted)]/30 bg-[var(--bg)] px-3 py-3 text-[var(--fg)] focus:border-[var(--accent)] focus:outline-none transition-colors rounded"
-                    >
-                      {[0, 1, 2, 3, 4, 5, 6, 7].map((val) => (
-                        <option key={val} value={val}>
-                          {val}/8
-                        </option>
-                      ))}
-                    </select>
+                    
+                    {/* Width Label - Centered above Width column */}
+                    <div className="absolute left-[236px] -top-[26px] w-32 flex items-center justify-center">
+                      <span className="text-sm text-[var(--fg)]">Width</span>
+                    </div>
+                    
+                    {/* Inch Label - Centered with first row */}
+                    <div className="absolute -left-[16px] top-1/4 -translate-y-1/2 flex items-center">
+                      <span className="text-sm text-[var(--fg)]">Inch</span>
+                    </div>
+                    
+                    {/* Soot Label - Centered with second row */}
+                    <div className="absolute -left-[16px] top-3/4 -translate-y-1/2 flex items-center">
+                      <span className="text-sm text-[var(--fg)]">Soot</span>
+                    </div>
+                    
+                    {/* Grid with inputs */}
+                    <div className="flex border border-[var(--fg)]/80 divide-x divide-[var(--fg)]/80 relative ml-6 rounded" style={{ backgroundColor: 'var(--box-bg)' }}>
+                      
+                      {/* Column 1: Height */}
+                      <div className="flex flex-col w-32">
+                        <div className="flex-1 border-b border-[var(--fg)]/50 flex items-center justify-center py-3">
+                          <input
+                            type="number"
+                            value={height}
+                            onChange={(e) => {
+                              const value = e.target.value
+                              if (value === '') {
+                                setHeight('')
+                                setHeightWarning(null)
+                                return
+                              }
+                              const numValue = Number(value)
+                              if (numValue > MAX_HEIGHT) {
+                                setHeightWarning(`Max ${MAX_HEIGHT}"`)
+                                setHeight(MAX_HEIGHT)
+                              } else {
+                                setHeightWarning(null)
+                                setHeight(numValue)
+                              }
+                            }}
+                            className="text-center bg-transparent px-2 py-1 text-lg text-[var(--fg)] focus:outline-none mx-auto [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            placeholder="65"
+                            style={{ MozAppearance: 'textfield' }}
+                          />
+                        </div>
+                        <div className="flex-1 flex items-center justify-center py-3">
+                          <select
+                            value={heightSoot}
+                            onChange={(e) => setHeightSoot(Number(e.target.value))}
+                            className="text-center bg-transparent px-2 py-1 text-lg text-[var(--fg)] focus:outline-none appearance-none cursor-pointer"
+                          >
+                            {[0, 1, 2, 3, 4, 5, 6, 7].map((val) => (
+                              <option key={val} value={val}>{val}/8</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Column 2: X */}
+                      <div className="flex items-center justify-center w-20">
+                        <span className="text-5xl text-[var(--fg)] leading-none">X</span>
+                      </div>
+
+                      {/* Column 3: Width */}
+                      <div className="flex flex-col w-32">
+                        <div className="flex-1 border-b border-[var(--fg)]/50 flex items-center justify-center py-3">
+                          <input
+                            type="number"
+                            value={width}
+                            onChange={(e) => {
+                              const value = e.target.value
+                              if (value === '') {
+                                setWidth('')
+                                setWidthWarning(null)
+                                return
+                              }
+                              const numValue = Number(value)
+                              if (numValue > MAX_WIDTH) {
+                                setWidthWarning(`Max ${MAX_WIDTH}"`)
+                                setWidth(MAX_WIDTH)
+                              } else {
+                                setWidthWarning(null)
+                                setWidth(numValue)
+                              }
+                            }}
+                            className="text-center bg-transparent px-2 py-1 text-lg text-[var(--fg)] focus:outline-none mx-auto [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            placeholder="30"
+                            style={{ MozAppearance: 'textfield' }}
+                          />
+                        </div>
+                        <div className="flex-1 flex items-center justify-center py-3">
+                          <select
+                            value={widthSoot}
+                            onChange={(e) => setWidthSoot(Number(e.target.value))}
+                            className="text-center bg-transparent px-2 py-1 text-lg text-[var(--fg)] focus:outline-none appearance-none cursor-pointer"
+                          >
+                            {[0, 1, 2, 3, 4, 5, 6, 7].map((val) => (
+                              <option key={val} value={val}>{val}/8</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--fg)]">Width</label>
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <input
-                        type="number"
-                        value={width}
-                        onChange={(e) => {
-                          const value = e.target.value
-                          if (value === '') {
-                            setWidth('')
-                            setWidthWarning(null)
-                            return
-                          }
-                          
-                          const numValue = Number(value)
-                          const totalWidth = numValue + (widthSoot / 8)
-                          
-                          if (numValue > MAX_WIDTH) {
-                            setWidthWarning(`Maximum width is ${MAX_WIDTH}". Value will be clamped to ${MAX_WIDTH}".`)
-                            setWidth(MAX_WIDTH)
-                          } else if (totalWidth > MAX_WIDTH) {
-                            setWidthWarning(`Total width (${numValue}" + ${widthSoot}/8) exceeds maximum of ${MAX_WIDTH}". Please reduce width or soot.`)
-                            // Don't set width if total exceeds, just warn
-                            setWidth(numValue)
-                          } else {
-                            setWidthWarning(null)
-                            setWidth(numValue)
-                          }
-                        }}
-                        max={MAX_WIDTH}
-                        min={1}
-                        className={`w-full border bg-[var(--bg)] px-4 py-3 text-[var(--fg)] focus:outline-none transition-colors rounded ${
-                          widthWarning 
-                            ? 'border-red-500 focus:border-red-500' 
-                            : 'border-[var(--muted)]/30 focus:border-[var(--accent)]'
-                        }`}
-                        placeholder="30"
-                      />
-                      {widthWarning && (
-                        <p className="mt-1 text-xs text-red-500">{widthWarning}</p>
-                      )}
-                    </div>
-                    <select
-                      value={widthSoot}
-                      onChange={(e) => {
-                        const newSoot = Number(e.target.value)
-                        const currentWidth = width === '' ? 30 : width
-                        const totalWidth = currentWidth + (newSoot / 8)
-                        
-                        if (totalWidth > MAX_WIDTH) {
-                          setWidthWarning(`Total width (${currentWidth}" + ${newSoot}/8 = ${totalWidth.toFixed(2)}") exceeds maximum of ${MAX_WIDTH}". Please reduce width or soot.`)
-                        } else {
-                          setWidthWarning(null)
-                        }
-                        setWidthSoot(newSoot)
-                      }}
-                      className="w-24 border border-[var(--muted)]/30 bg-[var(--bg)] px-3 py-3 text-[var(--fg)] focus:border-[var(--accent)] focus:outline-none transition-colors rounded"
-                    >
-                      {[0, 1, 2, 3, 4, 5, 6, 7].map((val) => (
-                        <option key={val} value={val}>
-                          {val}/8
-                        </option>
-                      ))}
-                    </select>
+                {/* Thickness Grid Section */}
+                <div className="flex flex-col">
+                  {/* Thickness Label - Plain text above grid */}
+                  <div className="mb-2 flex items-center justify-center">
+                    <span className="text-sm text-[var(--fg)]">Thickness</span>
                   </div>
-                </div>
-              </div>
-
-              {/* Thickness Selection */}
-              <div>
-                <label className="block text-sm font-medium mb-3 text-[var(--fg)] flex items-center gap-2">
-                  <span>Aluminium Thickness:</span>
-                  {/* Dynamic Thickness Visualizer - Inline */}
-                  <span className="inline-flex items-center gap-2 text-[var(--muted)] text-xs">
-                    <div 
-                      className="bg-[var(--accent)] rounded-full transition-all duration-300"
-                      style={{
-                        width: selectedThickness === '1.2 MM' ? '40px' : selectedThickness === '1.6 MM' ? '60px' : '50px',
-                        height: selectedThickness === '1.2 MM' ? '2px' : selectedThickness === '1.6 MM' ? '3px' : '2.5px',
-                      }}
-                    ></div>
-                    {selectedThickness === '1.6 MM' && (
-                      <span className="text-[var(--accent)] text-[10px] font-semibold">★ Best</span>
-                    )}
-                  </span>
-                </label>
-                
-                <div className="flex gap-4">
+                  
+                  {/* Grid with buttons */}
+                  <div className="flex flex-col border border-[var(--fg)]/80 divide-y border-collapse w-44 rounded" style={{ backgroundColor: 'var(--box-bg)' }}>
                   <button
                     onClick={() => setSelectedThickness('1.2 MM')}
-                    className={`flex-1 px-4 py-3 border-2 rounded transition-colors relative ${
-                      selectedThickness === '1.2 MM'
-                        ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
-                        : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'
+                    className={`h-14 px-3 transition-colors text-sm flex items-center justify-center ${
+                      selectedThickness === '1.2 MM' ? 'bg-[var(--fg)] text-[var(--bg)]' : 'hover:bg-[var(--fg)]/10'
                     }`}
                   >
                     1.2 MM
                   </button>
                   <button
                     onClick={() => setSelectedThickness('1.6 MM')}
-                    className={`flex-1 px-4 py-3 border-2 rounded transition-colors relative ${
-                      selectedThickness === '1.6 MM'
-                        ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
-                        : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'
+                    className={`h-14 px-3 transition-colors text-sm flex items-center justify-center ${
+                      selectedThickness === '1.6 MM' ? 'bg-[var(--fg)] text-[var(--bg)]' : 'hover:bg-[var(--fg)]/10'
                     }`}
                   >
                     1.6 MM
-                    {selectedThickness === '1.6 MM' ? (
-                      <span className="absolute -top-1 -right-1 bg-[var(--bg)] text-[var(--accent)] text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-[var(--accent)]">★</span>
-                    ) : (
-                      <span className="absolute -top-1 -right-1 bg-[var(--accent)] text-[var(--bg)] text-[10px] font-bold px-1.5 py-0.5 rounded-full">★</span>
-                    )}
                   </button>
                   <button
                     onClick={() => setSelectedThickness('1.2 MM Hindalco')}
-                    className={`flex-1 px-4 py-3 border-2 rounded transition-colors ${
-                      selectedThickness === '1.2 MM Hindalco'
-                        ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
-                        : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'
+                    className={`h-14 px-3 transition-colors text-sm flex flex-col items-center justify-center ${
+                      selectedThickness === '1.2 MM Hindalco' ? 'bg-[var(--fg)] text-[var(--bg)]' : 'hover:bg-[var(--fg)]/10'
                     }`}
                   >
-                    1.2 MM Hindalco
+                    <div>1.2 MM</div>
+                    <div className="text-[10px] opacity-80">(Hindalco)</div>
                   </button>
+                  </div>
                 </div>
               </div>
 
+              {/* Separator Line - Dynamic thickness simulation */}
+              <div className="w-full max-w-lg mt-8 mb-4">
+                <div 
+                  className="bg-[var(--fg)]/80 transition-all duration-300 mx-auto"
+                  style={{
+                    width: '100%',
+                    height: selectedThickness === '1.2 MM' ? '2px' : selectedThickness === '1.6 MM' ? '6px' : '4px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}
+                ></div>
+              </div>
+
               {/* Options Section */}
-              <div>
-                <label className="block text-sm font-medium mb-3 text-[var(--fg)]">Options →</label>
-                <div className="space-y-3 border border-[var(--muted)]/20 p-6 bg-black/20 backdrop-blur-sm rounded-lg">
+              <div className="flex flex-col -ml-4" style={{ width: '103%', maxWidth: 'none', marginTop: '4.8rem' }}>
+                <div className="mb-2 flex items-center justify-center">
+                  <span className="text-sm text-[var(--fg)]">Options</span>
+                </div>
+                <div className="border border-[var(--muted)]/20 p-6 rounded-lg flex flex-col w-full" style={{ backgroundColor: 'var(--box-bg)' }}>
+                <div className="space-y-3 flex-1">
                   <label className="flex items-center justify-between cursor-pointer group">
                     <div className="flex items-center gap-3">
                       <input
@@ -434,59 +451,61 @@ export default function AluminiumDoorPage() {
                     )}
                   </label>
                 </div>
-
-                {/* Total Box - Below Options */}
-                <div className="mt-6">
-                  <div className="border-2 border-[var(--accent)]/50 p-4 bg-black/30 backdrop-blur-sm rounded-lg text-center">
-                    <p className="text-xs uppercase tracking-wider text-[var(--muted)] mb-1">Total</p>
-                    <p className="text-2xl sm:text-3xl font-bold text-[var(--accent)]">
-                      ₹{Math.round(calculations.total + calculations.addonsTotal)}
-                    </p>
-                  </div>
                 </div>
 
-                {/* Action Buttons - Below Options */}
-                <div className="mt-4 flex items-center justify-end gap-3">
-                      <button
-                        onClick={() => {
-                          setHeight(65)
-                          setWidth(30)
-                          setHeightSoot(0)
-                          setWidthSoot(0)
-                          setChaukhat(true)
-                          setAccessories(true)
-                          setDecorFilm(true)
-                          setBrownCoated(true)
-                          setSelectedThickness('1.2 MM')
-                          setShowPrintDetails(false)
-                          setHeightWarning(null)
-                          setWidthWarning(null)
-                        }}
-                        className="w-8 h-8 rounded bg-[var(--muted)]/10 hover:bg-[var(--muted)]/20 border border-[var(--muted)]/20 flex items-center justify-center transition-all duration-300 hover-scale text-[var(--fg)]"
-                        aria-label="Reset calculator"
-                        title="Reset"
-                      >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
+                {/* Action Buttons: Total, New, Add To Cart */}
+                <div className="grid grid-cols-3 gap-3 mt-4">
+                  <button
+                    className="px-4 py-3 border-2 border-[var(--muted)]/30 text-[var(--fg)] hover:border-[var(--accent)] transition-colors rounded font-medium"
+                    style={{ backgroundColor: 'var(--box-bg)' }}
+                  >
+                    <div className="text-xs text-[var(--muted)] mb-1">Total</div>
+                    <div className="text-lg font-bold text-[var(--accent)]">
+                      ₹{Math.round(calculations.total + calculations.addonsTotal)}
+                    </div>
                   </button>
-                  <span className="text-[var(--muted)]/30">|</span>
+                  <button
+                    onClick={() => {
+                      setHeight(65)
+                      setWidth(30)
+                      setHeightSoot(0)
+                      setWidthSoot(0)
+                      setChaukhat(true)
+                      setAccessories(true)
+                      setDecorFilm(true)
+                      setBrownCoated(true)
+                      setSelectedThickness('1.2 MM')
+                      setShowPrintDetails(false)
+                      setHeightWarning(null)
+                      setWidthWarning(null)
+                    }}
+                    className="px-4 py-3 border-2 border-[var(--muted)]/30 text-[var(--fg)] hover:border-[var(--accent)] hover:bg-[var(--muted)]/10 transition-colors rounded font-medium"
+                    style={{ backgroundColor: 'var(--box-bg)' }}
+                  >
+                    New
+                  </button>
                   <button
                     onClick={() => setShowPrintDetails(!showPrintDetails)}
-                    className="w-8 h-8 rounded bg-[var(--muted)]/10 hover:bg-[var(--muted)]/20 border border-[var(--muted)]/20 flex items-center justify-center transition-all duration-300 hover-scale text-[var(--fg)]"
-                    aria-label={showPrintDetails ? 'Hide details' : 'Print quote'}
-                    title={showPrintDetails ? 'Hide Details' : 'Print Quote'}
+                    className="px-4 py-3 border-2 border-[var(--accent)] text-[var(--fg)] hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors rounded font-medium"
+                    style={{ backgroundColor: 'var(--box-bg)' }}
                   >
-                    {showPrintDetails ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                      </svg>
-                    )}
+                    Add To Cart
                   </button>
+                </div>
+
+                {/* Additional Buttons: D1, D2, D3 */}
+                <div className="mt-3 p-3 border border-[var(--muted)]/20 rounded-lg overflow-x-auto" style={{ backgroundColor: 'var(--box-bg-track)' }}>
+                  <div className="flex gap-3 justify-start">
+                    <button className="w-12 h-12 border border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50 hover:bg-[var(--muted)]/10 transition-colors rounded text-sm font-medium flex items-center justify-center flex-shrink-0">
+                      D1
+                    </button>
+                    <button className="w-12 h-12 border border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50 hover:bg-[var(--muted)]/10 transition-colors rounded text-sm font-medium flex items-center justify-center flex-shrink-0">
+                      D2
+                    </button>
+                    <button className="w-12 h-12 border border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50 hover:bg-[var(--muted)]/10 transition-colors rounded text-sm font-medium flex items-center justify-center flex-shrink-0">
+                      D3
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

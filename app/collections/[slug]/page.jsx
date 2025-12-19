@@ -87,16 +87,16 @@ export default function CollectionDetailPage({ params, searchParams }) {
 
           {/* Collection Header */}
           <div className="max-w-4xl mx-auto mb-16">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 text-[var(--fg)]">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 text-[var(--fg)]">
               {collection.title}
-            </h1>
+              </h1>
             <p className="text-xl md:text-2xl text-[var(--muted)] leading-relaxed">
               {collection.description}
             </p>
             <p className="mt-4 text-[var(--muted)]">
               {collection.productCount} products available
-            </p>
-          </div>
+              </p>
+            </div>
 
           {/* Products Grid */}
           {loading ? (
@@ -106,7 +106,7 @@ export default function CollectionDetailPage({ params, searchParams }) {
           ) : products.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-[var(--muted)]">No products found in this collection.</p>
-            </div>
+              </div>
           ) : (
             <div
               ref={gridRef}
@@ -141,8 +141,8 @@ export default function CollectionDetailPage({ params, searchParams }) {
                         </h3>
                         <div className="mt-4 text-sm text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <span className="uppercase tracking-wider">View Details →</span>
-                        </div>
-                      </div>
+                </div>
+              </div>
                     </article>
                   </Link>
                 )
