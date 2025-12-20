@@ -108,8 +108,8 @@ export default function Header() {
           </div>
         )}
 
-        {/* Nav links */}
-        <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-sm ml-auto">
+        {/* Nav links and right side items */}
+        <nav className="hidden md:flex items-center gap-8 text-sm ml-auto">
           {navItems.map((item) => {
             const active = pathname === item.href || (item.href === '/#collections' && pathname === '/')
             const isCollections = item.href === '/#collections'
@@ -139,12 +139,37 @@ export default function Header() {
               </Link>
             )
           })}
-        </nav>
+          
+          {/* Cart Icon */}
+          <Link
+            href="/cart"
+            className={`relative transition-colors duration-200 hover-scale ${
+              theme === 'dark'
+                ? 'text-white/80 hover:text-white'
+                : 'text-black/80 hover:text-black'
+            }`}
+            aria-label="Shopping cart"
+          >
+            <svg 
+              className="w-6 h-6" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" 
+              />
+            </svg>
+          </Link>
 
-        {/* Theme Toggle Button */}
-        <button
-          onClick={toggleTheme}
-          className={`w-9 h-9 rounded flex items-center justify-center transition-all duration-300 hover-scale ml-4 ${
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className={`w-9 h-9 rounded flex items-center justify-center transition-all duration-300 hover-scale ${
             theme === 'dark'
               ? 'bg-white/10 hover:bg-white/20 border border-white/20'
               : 'bg-black/10 hover:bg-black/20 border border-black/20'
@@ -163,7 +188,8 @@ export default function Header() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
             </svg>
           )}
-        </button>
+          </button>
+        </nav>
       </div>
     </header>
   )

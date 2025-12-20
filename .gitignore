@@ -43,3 +43,4 @@ scraping/images/
 # jupyter notebooks (optional, keep if needed)
 # *.ipynb
 
+.tmp.driveupload/

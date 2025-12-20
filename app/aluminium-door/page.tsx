@@ -6,10 +6,12 @@ import {
   aluminiumDoorRates,
   type AluminiumDoorThickness,
 } from '@/lib/calculators'
+import { useCart } from '@/contexts/CartContext'
 
 export default function AluminiumDoorPage() {
   const MAX_HEIGHT = 84
   const MAX_WIDTH = 36
+  const { addToCart } = useCart()
 
   const [height, setHeight] = useState<number | ''>(65)
   const [width, setWidth] = useState<number | ''>(30)
@@ -148,7 +150,7 @@ export default function AluminiumDoorPage() {
                   <p className="text-[9px] text-[var(--muted)]/70 leading-tight">({calculations.area} Sqft)</p>
                 </div>
                 
-                {/* Door Visual - Properly scaled with correct ratios */}
+                {/* Door Visual - Using AluDoor.png image with dynamic sizing */}
                 <div className="absolute inset-0 flex items-center justify-center" style={{ padding: `${PADDING}px` }}>
                   <div 
                     className="relative"
@@ -159,43 +161,18 @@ export default function AluminiumDoorPage() {
                       maxHeight: '100%',
                     }}
                   >
-                    {/* Frame (Door Frame) - Outer Structure */}
-                    {chaukhat && (
-                      <div 
-                        className="absolute inset-0 border-4 border-[var(--accent)]/40 bg-[var(--muted)]/5 rounded-sm"
-                        style={{
-                          padding: '8px',
-                        }}
-                      >
-                        {/* Frame Inner Shadow */}
-                        <div className="absolute inset-0 border border-[var(--accent)]/20 rounded-sm"></div>
-                      </div>
-                    )}
-                    
-                    {/* Door Panel */}
-                    <div 
-                      className="relative mx-auto bg-gradient-to-br from-[var(--muted)]/20 to-[var(--muted)]/10 border-2 border-[var(--muted)]/30"
+                    {/* Door Image - Dynamically sized based on door dimensions */}
+                    <img 
+                      src="/AluDoor.png"
+                      alt="Aluminium Door"
+                      className="absolute inset-0"
                       style={{
-                        width: chaukhat ? 'calc(100% - 16px)' : '100%',
-                        height: chaukhat ? 'calc(100% - 16px)' : '100%',
-                        marginTop: chaukhat ? '8px' : '0',
-                        marginLeft: chaukhat ? '8px' : '0',
-                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)',
+                        width: `${scaledWidth}px`,
+                        height: `${scaledHeight}px`,
+                        objectFit: 'contain',
+                        objectPosition: 'center',
                       }}
-                    >
-                      {/* Door Panel Texture/Pattern */}
-                      <div className="absolute inset-0 opacity-20" style={{
-                        backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)',
-                      }}></div>
-                      
-                      {/* Door Hinges - Left Side (typically 3 hinges) */}
-                      <div className="absolute left-2 top-[10%] w-1 h-6 bg-[var(--muted)]/50 rounded-sm"></div>
-                      <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--muted)]/50 rounded-sm"></div>
-                      <div className="absolute left-2 bottom-[10%] w-1 h-6 bg-[var(--muted)]/50 rounded-sm"></div>
-
-                      {/* Door Lock/Strike Plate Indicator - Right Side */}
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 w-2 h-8 bg-[var(--muted)]/40 rounded-sm"></div>
-                    </div>
+                    />
 
                     {/* Height Dimension - Left Side */}
                     <div className="absolute -left-12 top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none">
@@ -375,20 +352,9 @@ export default function AluminiumDoorPage() {
                 </div>
               </div>
 
-              {/* Separator Line - Dynamic thickness simulation */}
-              <div className="w-full max-w-lg mt-8 mb-4">
-                <div 
-                  className="bg-[var(--fg)]/80 transition-all duration-300 mx-auto"
-                  style={{
-                    width: '100%',
-                    height: selectedThickness === '1.2 MM' ? '2px' : selectedThickness === '1.6 MM' ? '6px' : '4px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
-                ></div>
-              </div>
 
               {/* Options Section */}
-              <div className="flex flex-col -ml-4" style={{ width: '103%', maxWidth: 'none', marginTop: '4.8rem' }}>
+              <div className="flex flex-col -ml-4" style={{ width: '103%', maxWidth: 'none', marginTop: '6.6rem' }}>
                 <div className="mb-2 flex items-center justify-center">
                   <span className="text-sm text-[var(--fg)]">Options</span>
                 </div>
@@ -485,7 +451,50 @@ export default function AluminiumDoorPage() {
                     New
                   </button>
                   <button
-                    onClick={() => setShowPrintDetails(!showPrintDetails)}
+                    onClick={() => {
+                      // Build specifications string
+                      const heightStr = height === '' ? '0' : height.toString()
+                      const widthStr = width === '' ? '0' : width.toString()
+                      const heightDisplay = heightSoot > 0 ? `${heightStr}" ${heightSoot}/8"` : `${heightStr}"`
+                      const widthDisplay = widthSoot > 0 ? `${widthStr}" ${widthSoot}/8"` : `${widthStr}"`
+                      
+                      const specsParts = [
+                        `Height: ${heightDisplay} × Width: ${widthDisplay}`,
+                        `Thickness: ${selectedThickness}`,
+                      ]
+                      
+                      const options = []
+                      if (chaukhat) options.push('Chaukhat')
+                      if (accessories) options.push('Accessories')
+                      if (decorFilm) options.push('Decor Film')
+                      if (brownCoated) options.push('Brown Coated')
+                      
+                      if (options.length > 0) {
+                        specsParts.push(`Options: ${options.join(', ')}`)
+                      }
+                      
+                      const specifications = specsParts.join(' | ')
+                      const totalPrice = Math.round(calculations.total + calculations.addonsTotal)
+                      
+                      addToCart({
+                        type: 'aluminium-door',
+                        name: 'Aluminium Door',
+                        specifications,
+                        price: totalPrice,
+                        height,
+                        width,
+                        heightSoot,
+                        widthSoot,
+                        thickness: selectedThickness,
+                        chaukhat,
+                        accessories,
+                        decorFilm,
+                        brownCoated,
+                      })
+                      
+                      // Optionally navigate to cart or show a success message
+                      // router.push('/cart')
+                    }}
                     className="px-4 py-3 border-2 border-[var(--accent)] text-[var(--fg)] hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors rounded font-medium"
                     style={{ backgroundColor: 'var(--box-bg)' }}
                   >
