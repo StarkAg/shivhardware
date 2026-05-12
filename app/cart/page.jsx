@@ -99,17 +99,17 @@ export default function CartPage() {
                               <div className="flex items-center gap-2 border border-[var(--fg)]/20 rounded">
                                 <button
                                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                  className="px-3 py-1 text-[var(--fg)] hover:bg-[var(--fg)]/10 transition-colors"
+                                  className="w-11 h-11 flex items-center justify-center text-[var(--fg)] hover:bg-[var(--fg)]/10 transition-colors text-lg"
                                   aria-label="Decrease quantity"
                                 >
                                   −
                                 </button>
-                                <span className="px-4 py-1 text-[var(--fg)] min-w-[3rem] text-center">
+                                <span className="px-3 py-1 text-[var(--fg)] min-w-[2.5rem] text-center">
                                   {item.quantity}
                                 </span>
                                 <button
                                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                  className="px-3 py-1 text-[var(--fg)] hover:bg-[var(--fg)]/10 transition-colors"
+                                  className="w-11 h-11 flex items-center justify-center text-[var(--fg)] hover:bg-[var(--fg)]/10 transition-colors text-lg"
                                   aria-label="Increase quantity"
                                 >
                                   +

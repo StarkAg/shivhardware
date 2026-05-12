@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import {
   calculateAluminiumDoor,
   aluminiumDoorRates,
@@ -23,6 +23,13 @@ export default function AluminiumDoorPage() {
   const [brownCoated, setBrownCoated] = useState(true)
   const [selectedThickness, setSelectedThickness] = useState<AluminiumDoorThickness>('1.2 MM')
   const [showPrintDetails, setShowPrintDetails] = useState(false)
+  const [addedToCart, setAddedToCart] = useState(false)
+  const [heightSootOpen, setHeightSootOpen] = useState(false)
+  const [widthSootOpen, setWidthSootOpen] = useState(false)
+  const heightSootRef = useRef<HTMLDivElement>(null)
+  const widthSootRef = useRef<HTMLDivElement>(null)
+  const heightSootMenuRef = useRef<HTMLDivElement>(null)
+  const widthSootMenuRef = useRef<HTMLDivElement>(null)
   
   // Validation warnings
   const [heightWarning, setHeightWarning] = useState<string | null>(null)
@@ -31,6 +38,32 @@ export default function AluminiumDoorPage() {
   // Texture controls
   const [selectedTexture, setSelectedTexture] = useState<string>('Texture2.jpg')
   const [textureOpacity, setTextureOpacity] = useState<number>(0.1)
+
+  // Close dropdowns when clicking outside and focus dropdown menu when opened
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (heightSootRef.current && !heightSootRef.current.contains(event.target as Node)) {
+        setHeightSootOpen(false)
+      }
+      if (widthSootRef.current && !widthSootRef.current.contains(event.target as Node)) {
+        setWidthSootOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    
+    // Focus dropdown menu when it opens for keyboard navigation
+    if (heightSootOpen && heightSootMenuRef.current) {
+      heightSootMenuRef.current.focus()
+    }
+    if (widthSootOpen && widthSootMenuRef.current) {
+      widthSootMenuRef.current.focus()
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [heightSootOpen, widthSootOpen])
 
   const calculations = useMemo(() => {
     return calculateAluminiumDoor({
@@ -51,39 +84,9 @@ export default function AluminiumDoorPage() {
   // Convert area to m² for display (1 sqft = 0.092903 m²)
   const areaInM2 = (calculations.area * 0.092903).toFixed(2)
 
-  // Maximize container space - minimize padding for maximum door size
-  const PADDING = 30 // Reduced padding to maximize usable space
-  const CONTAINER_HEIGHT_PX = 700 - (PADDING * 2) // 640px available (was 580px)
-  const CONTAINER_WIDTH_PX = 640  // Estimate for grid column width
-  
-  // Calculate optimal scale factor to maximize door size
-  // For maximum door (84" x 36"), find best fit using all available space
-  const scaleByHeight = CONTAINER_HEIGHT_PX / MAX_HEIGHT // 640/84 = 7.62 px/inch
-  const scaleByWidth = CONTAINER_WIDTH_PX / MAX_WIDTH    // 640/36 = 17.78 px/inch
-  
-  // Use smaller scale to ensure max door fits perfectly in both dimensions
-  // This maximizes door size while maintaining aspect ratio
-  const optimalScaleFactor = Math.min(scaleByHeight, scaleByWidth) // 7.62 (height is limiting)
-  
-  // Calculate aspect ratio for current door (width / height)
+  // Responsive container: use aspect ratio instead of fixed px
+  // Door aspect ratio drives the visual — width/height of current door
   const doorAspectRatio = calculations.widthInch / calculations.heightInch
-  
-  // Calculate scale factor based on maximum door size
-  // Max door: 84" height x 36" width
-  // Scale so max door fits perfectly in container
-  const maxDoorAspectRatio = MAX_WIDTH / MAX_HEIGHT // 36/84 = 0.4286
-  
-  // Calculate scale factor: how many pixels per inch for max door to fit
-  const scaleByMaxHeight = CONTAINER_HEIGHT_PX / MAX_HEIGHT // 640/84 = 7.62 px/inch
-  const scaleByMaxWidth = CONTAINER_WIDTH_PX / MAX_WIDTH    // 640/36 = 17.78 px/inch
-  
-  // Use the smaller scale to ensure max door fits in container
-  const scaleFactor = Math.min(scaleByMaxHeight, scaleByMaxWidth) // 7.62
-  
-  // Calculate scaled dimensions for current door using the scale factor
-  // This maintains proper proportions relative to max door size
-  const scaledWidth = calculations.widthInch * scaleFactor
-  const scaledHeight = calculations.heightInch * scaleFactor
 
   // Texture background style with opacity
   const textureBgStyle = {
@@ -139,57 +142,80 @@ export default function AluminiumDoorPage() {
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 md:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
             {/* Left Side - Door Diagram */}
-            <div className="space-y-6 flex flex-col">
-              <div className="border border-[var(--muted)]/20 p-8 backdrop-blur-sm rounded-lg relative" style={{ height: '700px', backgroundColor: 'var(--box-bg-door)' }}>
+            <div className="flex flex-col gap-4">
+              {/* Responsive diagram box: fixed portrait shape, door scales independently on each axis */}
+              <div
+                className="border border-[var(--muted)]/20 backdrop-blur-sm rounded-lg relative w-full mb-6"
+                style={{
+                  height: 'min(80vh, 700px)',
+                  backgroundColor: 'var(--box-bg-door)',
+                }}
+              >
                 {/* Area Display - Corner of Box */}
                 <div className="absolute top-2 right-2 text-center p-1.5 backdrop-blur-md border border-white/20 rounded shadow-lg z-10" style={{ backgroundColor: 'var(--box-bg)' }}>
                   <p className="text-[9px] text-[var(--muted)] mb-0.5 leading-tight">Area</p>
                   <p className="text-[10px] font-semibold text-[var(--fg)] leading-tight">{areaInM2} m²</p>
                   <p className="text-[9px] text-[var(--muted)]/70 leading-tight">({calculations.area} Sqft)</p>
                 </div>
-                
-                {/* Door Visual - Using AluDoor.png image with dynamic sizing */}
-                <div className="absolute inset-0 flex items-center justify-center" style={{ padding: `${PADDING}px` }}>
-                  <div 
+
+                {/* Door Visual — image stretches to reflect actual door proportions */}
+                {/* Container is fixed, inner div uses door's aspect ratio, images fill it with object-fit:fill */}
+                {/* Left padding accommodates the height label so it doesn't get clipped */}
+                <div className="absolute inset-6 pl-10 pb-8 flex items-center justify-center" style={{ containerType: 'size' }}>
+                  <div
                     className="relative"
                     style={{
-                      width: `${scaledWidth}px`,
-                      height: `${scaledHeight}px`,
+                      aspectRatio: `${calculations.widthInch} / ${calculations.heightInch}`,
                       maxWidth: '100%',
                       maxHeight: '100%',
+                      // Fit within container on both axes — portrait doors constrained by height, wide doors by width
+                      width: `min(100%, calc(100cqh * ${calculations.widthInch / calculations.heightInch}))`,
                     }}
                   >
-                    {/* Door Image - Dynamically sized based on door dimensions */}
-                    <img 
-                      src="/AluDoor.png"
-                      alt="Aluminium Door"
-                      className="absolute inset-0"
-                      style={{
-                        width: `${scaledWidth}px`,
-                        height: `${scaledHeight}px`,
-                        objectFit: 'contain',
-                        objectPosition: 'center',
-                      }}
+                    {/* Layer 1: Base door body */}
+                    <img
+                      src={brownCoated ? '/Door Varients/door_base_brown (1).png' : '/Door Varients/door_base_plain.png'}
+                      alt="Door base"
+                      className="absolute inset-0 w-full h-full"
+                      style={{ objectFit: 'fill' }}
                     />
+                    {/* Layer 2: Frame (chaukhat) */}
+                    {chaukhat && (
+                      <img
+                        src={brownCoated ? '/Door Varients/frame_brown.png' : '/Door Varients/frame_plain.png'}
+                        alt="Door frame"
+                        className="absolute inset-0 w-full h-full"
+                        style={{ objectFit: 'fill' }}
+                      />
+                    )}
+                    {/* Layer 3: Accessories */}
+                    {accessories && (
+                      <img
+                        src="/Door Varients/accessories.png"
+                        alt="Door accessories"
+                        className="absolute inset-0 w-full h-full"
+                        style={{ objectFit: 'fill' }}
+                      />
+                    )}
 
-                    {/* Height Dimension - Left Side */}
-                    <div className="absolute -left-12 top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none">
-                      <div className="flex-1 border-l-2 border-[var(--accent)]"></div>
-                      <div className="px-2 py-1 bg-[var(--bg)] border border-[var(--muted)]/30 rounded text-xs font-medium text-[var(--fg)] whitespace-nowrap shadow-lg">
+                    {/* Height Dimension - Left Side (inside container, won't clip) */}
+                    <div className="absolute -left-9 top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none">
+                      <div className="flex-1 border-l-2 border-[var(--accent)]" />
+                      <div className="px-1.5 py-0.5 bg-[var(--bg)] border border-[var(--muted)]/30 rounded text-[10px] font-medium text-[var(--fg)] whitespace-nowrap shadow-lg">
                         {calculations.heightDisplay}
                       </div>
-                      <div className="flex-1 border-l-2 border-[var(--accent)]"></div>
+                      <div className="flex-1 border-l-2 border-[var(--accent)]" />
                     </div>
 
                     {/* Width Dimension - Bottom */}
-                    <div className="absolute -bottom-8 left-0 right-0 flex items-center justify-center pointer-events-none">
-                      <div className="flex-1 border-t-2 border-[var(--accent)]"></div>
-                      <div className="px-2 py-1 bg-[var(--bg)] border border-[var(--muted)]/30 rounded text-xs font-medium text-[var(--fg)] whitespace-nowrap mx-2 shadow-lg">
+                    <div className="absolute -bottom-7 left-0 right-0 flex items-center justify-center pointer-events-none">
+                      <div className="flex-1 border-t-2 border-[var(--accent)]" />
+                      <div className="px-1.5 py-0.5 bg-[var(--bg)] border border-[var(--muted)]/30 rounded text-[10px] font-medium text-[var(--fg)] whitespace-nowrap mx-1 shadow-lg">
                         {calculations.widthDisplay}
                       </div>
-                      <div className="flex-1 border-t-2 border-[var(--accent)]"></div>
+                      <div className="flex-1 border-t-2 border-[var(--accent)]" />
                     </div>
                   </div>
                 </div>
@@ -197,168 +223,136 @@ export default function AluminiumDoorPage() {
             </div>
 
             {/* Right Side - Inputs and Options */}
-            <div className="space-y-6 flex flex-col items-center mt-2">
-              <div className="flex items-center gap-10 justify-center w-full">
+            <div className="space-y-6">
+              {/* Dimensions + Thickness — stack on mobile, side-by-side on sm+ */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8 justify-center">
                 {/* Dimensions Grid Section */}
-                <div className="flex flex-col items-center">
-                  {/* Grid with inputs */}
-                  <div className="flex items-center gap-4 relative -mt-[1.175rem]">
-                    {/* Height Label - Centered above Height column */}
-                    <div className="absolute left-6 -top-[26px] w-32 flex items-center justify-center">
-                      <span className="text-sm text-[var(--fg)]">Height</span>
-                    </div>
-                    
-                    {/* Width Label - Centered above Width column */}
-                    <div className="absolute left-[236px] -top-[26px] w-32 flex items-center justify-center">
-                      <span className="text-sm text-[var(--fg)]">Width</span>
-                    </div>
-                    
-                    {/* Inch Label - Centered with first row */}
-                    <div className="absolute -left-[16px] top-1/4 -translate-y-1/2 flex items-center">
-                      <span className="text-sm text-[var(--fg)]">Inch</span>
-                    </div>
-                    
-                    {/* Soot Label - Centered with second row */}
-                    <div className="absolute -left-[16px] top-3/4 -translate-y-1/2 flex items-center">
-                      <span className="text-sm text-[var(--fg)]">Soot</span>
-                    </div>
-                    
-                    {/* Grid with inputs */}
-                    <div className="flex border border-[var(--fg)]/80 divide-x divide-[var(--fg)]/80 relative ml-6 rounded" style={{ backgroundColor: 'var(--box-bg)' }}>
-                      
-                      {/* Column 1: Height */}
-                      <div className="flex flex-col w-32">
-                        <div className="flex-1 border-b border-[var(--fg)]/50 flex items-center justify-center py-3">
-                          <input
-                            type="number"
-                            value={height}
-                            onChange={(e) => {
-                              const value = e.target.value
-                              if (value === '') {
-                                setHeight('')
-                                setHeightWarning(null)
-                                return
-                              }
-                              const numValue = Number(value)
-                              if (numValue > MAX_HEIGHT) {
-                                setHeightWarning(`Max ${MAX_HEIGHT}"`)
-                                setHeight(MAX_HEIGHT)
-                              } else {
-                                setHeightWarning(null)
-                                setHeight(numValue)
-                              }
-                            }}
-                            className="text-center bg-transparent px-2 py-1 text-lg text-[var(--fg)] focus:outline-none mx-auto [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            placeholder="65"
-                            style={{ MozAppearance: 'textfield' }}
-                          />
-                        </div>
-                        <div className="flex-1 flex items-center justify-center py-3">
-                          <select
-                            value={heightSoot}
-                            onChange={(e) => setHeightSoot(Number(e.target.value))}
-                            className="text-center bg-transparent px-2 py-1 text-lg text-[var(--fg)] focus:outline-none appearance-none cursor-pointer"
-                          >
-                            {[0, 1, 2, 3, 4, 5, 6, 7].map((val) => (
-                              <option key={val} value={val}>{val}/8</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
+                <div className="flex flex-col items-center w-full sm:w-auto">
 
-                      {/* Column 2: X */}
-                      <div className="flex items-center justify-center w-20">
-                        <span className="text-5xl text-[var(--fg)] leading-none">X</span>
-                      </div>
-
-                      {/* Column 3: Width */}
-                      <div className="flex flex-col w-32">
-                        <div className="flex-1 border-b border-[var(--fg)]/50 flex items-center justify-center py-3">
-                          <input
-                            type="number"
-                            value={width}
-                            onChange={(e) => {
-                              const value = e.target.value
-                              if (value === '') {
-                                setWidth('')
-                                setWidthWarning(null)
-                                return
-                              }
-                              const numValue = Number(value)
-                              if (numValue > MAX_WIDTH) {
-                                setWidthWarning(`Max ${MAX_WIDTH}"`)
-                                setWidth(MAX_WIDTH)
-                              } else {
-                                setWidthWarning(null)
-                                setWidth(numValue)
-                              }
-                            }}
-                            className="text-center bg-transparent px-2 py-1 text-lg text-[var(--fg)] focus:outline-none mx-auto [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            placeholder="30"
-                            style={{ MozAppearance: 'textfield' }}
-                          />
+                  {/* ── DESKTOP layout (sm+): original fixed-width grid ── */}
+                  <div className="hidden sm:flex flex-col items-center">
+                    <div className="flex mb-1 pl-6">
+                      <div className="w-32 text-center text-sm text-[var(--fg)]">Height</div>
+                      <div className="w-20 opacity-0">X</div>
+                      <div className="w-32 text-center text-sm text-[var(--fg)]">Width</div>
+                    </div>
+                    <div className="flex items-center gap-4 relative">
+                      <div className="absolute -left-[16px] top-1/4 -translate-y-1/2"><span className="text-sm text-[var(--fg)]">Inch</span></div>
+                      <div className="absolute -left-[16px] top-3/4 -translate-y-1/2"><span className="text-sm text-[var(--fg)]">Soot</span></div>
+                      <div className="flex border border-[var(--fg)]/80 divide-x divide-[var(--fg)]/80 relative ml-6 rounded" style={{ backgroundColor: 'var(--box-bg)' }}>
+                        {/* Height column */}
+                        <div className="flex flex-col w-32">
+                          <div className="flex-1 border-b border-[var(--fg)]/50 flex items-center justify-center py-3">
+                            <input type="number" value={height} onChange={(e) => { const v = e.target.value; if (v === '') { setHeight(''); setHeightWarning(null); return; } const n = Number(v); if (n > MAX_HEIGHT) { setHeightWarning(`Max ${MAX_HEIGHT}"`); setHeight(MAX_HEIGHT); } else { setHeightWarning(null); setHeight(n); } }} className="text-center bg-transparent px-2 py-1 text-lg text-[var(--fg)] focus:outline-none mx-auto [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="65" style={{ MozAppearance: 'textfield' }} />
+                          </div>
+                          <div ref={heightSootRef} className="flex-1 flex items-center justify-center py-3 relative cursor-pointer hover:bg-[var(--fg)]/5 transition-colors" onClick={() => setHeightSootOpen(!heightSootOpen)} tabIndex={0}>
+                            <div className="text-lg text-[var(--fg)]">{heightSoot}/8</div>
+                            <div className={`absolute right-2 transition-transform ${heightSootOpen ? 'rotate-180' : ''}`}><svg className="w-4 h-4 text-[var(--fg)]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></div>
+                            {heightSootOpen && (<div ref={heightSootMenuRef} className="absolute top-full left-0 right-0 mt-1 z-50 border border-[var(--fg)]/20 rounded shadow-lg overflow-hidden max-h-48 overflow-y-auto outline-none" style={{ backgroundColor: 'var(--bg)' }} tabIndex={0} onKeyDown={(e) => { if (e.key >= '0' && e.key <= '7') { setHeightSoot(Number(e.key)); setHeightSootOpen(false); } else if (e.key === 'Escape') setHeightSootOpen(false); }}>{[0,1,2,3,4,5,6,7].map(val => (<div key={val} onClick={() => { setHeightSoot(val); setHeightSootOpen(false); }} className={`px-4 py-2 text-center text-lg text-[var(--fg)] cursor-pointer transition-colors ${heightSoot === val ? 'bg-[var(--fg)]/20' : 'hover:bg-[var(--fg)]/10'}`}>{val}/8</div>))}</div>)}
+                          </div>
                         </div>
-                        <div className="flex-1 flex items-center justify-center py-3">
-                          <select
-                            value={widthSoot}
-                            onChange={(e) => setWidthSoot(Number(e.target.value))}
-                            className="text-center bg-transparent px-2 py-1 text-lg text-[var(--fg)] focus:outline-none appearance-none cursor-pointer"
-                          >
-                            {[0, 1, 2, 3, 4, 5, 6, 7].map((val) => (
-                              <option key={val} value={val}>{val}/8</option>
-                            ))}
-                          </select>
+                        {/* X */}
+                        <div className="flex items-center justify-center w-20"><span className="text-5xl text-[var(--fg)] leading-none">X</span></div>
+                        {/* Width column */}
+                        <div className="flex flex-col w-32">
+                          <div className="flex-1 border-b border-[var(--fg)]/50 flex items-center justify-center py-3">
+                            <input type="number" value={width} onChange={(e) => { const v = e.target.value; if (v === '') { setWidth(''); setWidthWarning(null); return; } const n = Number(v); if (n > MAX_WIDTH) { setWidthWarning(`Max ${MAX_WIDTH}"`); setWidth(MAX_WIDTH); } else { setWidthWarning(null); setWidth(n); } }} className="text-center bg-transparent px-2 py-1 text-lg text-[var(--fg)] focus:outline-none mx-auto [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="30" style={{ MozAppearance: 'textfield' }} />
+                          </div>
+                          <div ref={widthSootRef} className="flex-1 flex items-center justify-center py-3 relative cursor-pointer hover:bg-[var(--fg)]/5 transition-colors" onClick={() => setWidthSootOpen(!widthSootOpen)} tabIndex={0}>
+                            <div className="text-lg text-[var(--fg)]">{widthSoot}/8</div>
+                            <div className={`absolute right-2 transition-transform ${widthSootOpen ? 'rotate-180' : ''}`}><svg className="w-4 h-4 text-[var(--fg)]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></div>
+                            {widthSootOpen && (<div ref={widthSootMenuRef} className="absolute top-full left-0 right-0 mt-1 z-50 border border-[var(--fg)]/20 rounded shadow-lg overflow-hidden max-h-48 overflow-y-auto outline-none" style={{ backgroundColor: 'var(--bg)' }} tabIndex={0} onKeyDown={(e) => { if (e.key >= '0' && e.key <= '7') { setWidthSoot(Number(e.key)); setWidthSootOpen(false); } else if (e.key === 'Escape') setWidthSootOpen(false); }}>{[0,1,2,3,4,5,6,7].map(val => (<div key={val} onClick={() => { setWidthSoot(val); setWidthSootOpen(false); }} className={`px-4 py-2 text-center text-lg text-[var(--fg)] cursor-pointer transition-colors ${widthSoot === val ? 'bg-[var(--fg)]/20' : 'hover:bg-[var(--fg)]/10'}`}>{val}/8</div>))}</div>)}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* ── MOBILE layout: X spans 2 rows, labels inside ── */}
+                  <div className="flex sm:hidden w-full">
+                    <div className="w-full border border-[var(--fg)]/80 rounded" style={{ backgroundColor: 'var(--box-bg)' }}>
+                      {/* Header row */}
+                      <div className="grid border-b border-[var(--fg)]/80" style={{ gridTemplateColumns: '3rem 1fr 3rem 1fr' }}>
+                        <div className="border-r border-[var(--fg)]/80" />
+                        <div className="text-center text-sm text-[var(--fg)] py-2 border-r border-[var(--fg)]/80">Height</div>
+                        <div className="border-r border-[var(--fg)]/80" />
+                        <div className="text-center text-sm text-[var(--fg)] py-2">Width</div>
+                      </div>
+                      {/* Input area: 4 cols, X spans rows 1-2 */}
+                      <div className="grid" style={{ gridTemplateColumns: '3rem 1fr 3rem 1fr', gridTemplateRows: 'auto auto' }}>
+                        {/* Inch label */}
+                        <div className="flex items-center justify-center text-sm text-[var(--fg)] border-b border-r border-[var(--fg)]/80">Inch</div>
+                        {/* Inch Height input */}
+                        <div className="flex items-center justify-center py-4 border-b border-r border-[var(--fg)]/80">
+                          <input type="number" value={height} onChange={(e) => { const v = e.target.value; if (v === '') { setHeight(''); setHeightWarning(null); return; } const n = Number(v); if (n > MAX_HEIGHT) { setHeightWarning(`Max ${MAX_HEIGHT}"`); setHeight(MAX_HEIGHT); } else { setHeightWarning(null); setHeight(n); } }} className="w-full text-center bg-transparent text-xl text-[var(--fg)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="65" style={{ MozAppearance: 'textfield' }} />
+                        </div>
+                        {/* X — spans 2 rows */}
+                        <div className="flex items-center justify-center border-r border-[var(--fg)]/80 text-4xl text-[var(--fg)]" style={{ gridRow: 'span 2' }}>X</div>
+                        {/* Inch Width input */}
+                        <div className="flex items-center justify-center py-4 border-b border-[var(--fg)]/80">
+                          <input type="number" value={width} onChange={(e) => { const v = e.target.value; if (v === '') { setWidth(''); setWidthWarning(null); return; } const n = Number(v); if (n > MAX_WIDTH) { setWidthWarning(`Max ${MAX_WIDTH}"`); setWidth(MAX_WIDTH); } else { setWidthWarning(null); setWidth(n); } }} className="w-full text-center bg-transparent text-xl text-[var(--fg)] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="30" style={{ MozAppearance: 'textfield' }} />
+                        </div>
+                        {/* Soot label */}
+                        <div className="flex items-center justify-center text-sm text-[var(--fg)] border-r border-[var(--fg)]/80">Soot</div>
+                        {/* Soot Height dropdown */}
+                        <div className="flex items-center justify-center py-4 border-r border-[var(--fg)]/80 relative cursor-pointer hover:bg-[var(--fg)]/5" onClick={() => setHeightSootOpen(!heightSootOpen)} tabIndex={0}>
+                          <span className="text-lg text-[var(--fg)]">{heightSoot}/8</span>
+                          <div className={`absolute right-2 transition-transform ${heightSootOpen ? 'rotate-180' : ''}`}><svg className="w-4 h-4 text-[var(--fg)]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg></div>
+                          {heightSootOpen && <div className="absolute top-full left-0 right-0 mt-1 z-50 border border-[var(--fg)]/20 rounded shadow-lg overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: 'var(--bg)' }}>{[0,1,2,3,4,5,6,7].map(val => <div key={val} onClick={() => { setHeightSoot(val); setHeightSootOpen(false); }} className={`px-4 py-2 text-center text-lg text-[var(--fg)] cursor-pointer ${heightSoot === val ? 'bg-[var(--fg)]/20' : 'hover:bg-[var(--fg)]/10'}`}>{val}/8</div>)}</div>}
+                        </div>
+                        {/* Soot Width dropdown */}
+                        <div className="flex items-center justify-center py-4 relative cursor-pointer hover:bg-[var(--fg)]/5" onClick={() => setWidthSootOpen(!widthSootOpen)} tabIndex={0}>
+                          <span className="text-lg text-[var(--fg)]">{widthSoot}/8</span>
+                          <div className={`absolute right-2 transition-transform ${widthSootOpen ? 'rotate-180' : ''}`}><svg className="w-4 h-4 text-[var(--fg)]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg></div>
+                          {widthSootOpen && <div className="absolute top-full left-0 right-0 mt-1 z-50 border border-[var(--fg)]/20 rounded shadow-lg overflow-hidden max-h-48 overflow-y-auto" style={{ backgroundColor: 'var(--bg)' }}>{[0,1,2,3,4,5,6,7].map(val => <div key={val} onClick={() => { setWidthSoot(val); setWidthSootOpen(false); }} className={`px-4 py-2 text-center text-lg text-[var(--fg)] cursor-pointer ${widthSoot === val ? 'bg-[var(--fg)]/20' : 'hover:bg-[var(--fg)]/10'}`}>{val}/8</div>)}</div>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
 
                 {/* Thickness Grid Section */}
-                <div className="flex flex-col">
-                  {/* Thickness Label - Plain text above grid */}
-                  <div className="mb-2 flex items-center justify-center">
+                <div className="flex flex-col items-center w-full sm:w-auto">
+                  <div className="mb-2 text-center">
                     <span className="text-sm text-[var(--fg)]">Thickness</span>
                   </div>
-                  
-                  {/* Grid with buttons */}
-                  <div className="flex flex-col border border-[var(--fg)]/80 divide-y border-collapse w-44 rounded" style={{ backgroundColor: 'var(--box-bg)' }}>
-                  <button
-                    onClick={() => setSelectedThickness('1.2 MM')}
-                    className={`h-14 px-3 transition-colors text-sm flex items-center justify-center ${
-                      selectedThickness === '1.2 MM' ? 'bg-[var(--fg)] text-[var(--bg)]' : 'hover:bg-[var(--fg)]/10'
-                    }`}
-                  >
-                    1.2 MM
-                  </button>
-                  <button
-                    onClick={() => setSelectedThickness('1.6 MM')}
-                    className={`h-14 px-3 transition-colors text-sm flex items-center justify-center ${
-                      selectedThickness === '1.6 MM' ? 'bg-[var(--fg)] text-[var(--bg)]' : 'hover:bg-[var(--fg)]/10'
-                    }`}
-                  >
-                    1.6 MM
-                  </button>
-                  <button
-                    onClick={() => setSelectedThickness('1.2 MM Hindalco')}
-                    className={`h-14 px-3 transition-colors text-sm flex flex-col items-center justify-center ${
-                      selectedThickness === '1.2 MM Hindalco' ? 'bg-[var(--fg)] text-[var(--bg)]' : 'hover:bg-[var(--fg)]/10'
-                    }`}
-                  >
-                    <div>1.2 MM</div>
-                    <div className="text-[10px] opacity-80">(Hindalco)</div>
-                  </button>
+                  <div className="flex flex-col border border-[var(--fg)]/80 divide-y divide-[var(--fg)]/80 rounded w-full sm:w-44" style={{ backgroundColor: 'var(--box-bg)' }}>
+                    <button
+                      onClick={() => setSelectedThickness('1.2 MM')}
+                      className={`h-12 px-3 transition-colors text-sm flex items-center justify-center ${
+                        selectedThickness === '1.2 MM' ? 'bg-[var(--fg)] text-[var(--bg)]' : 'hover:bg-[var(--fg)]/10 text-[var(--fg)]'
+                      }`}
+                    >
+                      1.2 MM
+                    </button>
+                    <button
+                      onClick={() => setSelectedThickness('1.6 MM')}
+                      className={`h-12 px-3 transition-colors text-sm flex items-center justify-center ${
+                        selectedThickness === '1.6 MM' ? 'bg-[var(--fg)] text-[var(--bg)]' : 'hover:bg-[var(--fg)]/10 text-[var(--fg)]'
+                      }`}
+                    >
+                      1.6 MM
+                    </button>
+                    <button
+                      onClick={() => setSelectedThickness('1.2 MM Hindalco')}
+                      className={`h-12 px-3 transition-colors text-sm flex flex-col items-center justify-center ${
+                        selectedThickness === '1.2 MM Hindalco' ? 'bg-[var(--fg)] text-[var(--bg)]' : 'hover:bg-[var(--fg)]/10 text-[var(--fg)]'
+                      }`}
+                    >
+                      <div>1.2 MM</div>
+                      <div className="text-[10px] opacity-80">(Hindalco)</div>
+                    </button>
                   </div>
                 </div>
               </div>
 
-
               {/* Options Section */}
-              <div className="flex flex-col -ml-4" style={{ width: '103%', maxWidth: 'none', marginTop: '6.6rem' }}>
+              <div className="w-full">
                 <div className="mb-2 flex items-center justify-center">
                   <span className="text-sm text-[var(--fg)]">Options</span>
                 </div>
-                <div className="border border-[var(--muted)]/20 p-6 rounded-lg flex flex-col w-full" style={{ backgroundColor: 'var(--box-bg)' }}>
+                <div className="border border-[var(--muted)]/20 p-4 sm:p-6 rounded-lg flex flex-col w-full" style={{ backgroundColor: 'var(--box-bg)' }}>
                 <div className="space-y-3 flex-1">
                   <label className="flex items-center justify-between cursor-pointer group">
                     <div className="flex items-center gap-3">
@@ -420,7 +414,7 @@ export default function AluminiumDoorPage() {
                 </div>
 
                 {/* Action Buttons: Total, New, Add To Cart */}
-                <div className="grid grid-cols-3 gap-3 mt-4">
+                <div className="grid grid-cols-2 gap-3 mt-4">
                   <button
                     className="px-4 py-3 border-2 border-[var(--muted)]/30 text-[var(--fg)] hover:border-[var(--accent)] transition-colors rounded font-medium"
                     style={{ backgroundColor: 'var(--box-bg)' }}
@@ -430,52 +424,28 @@ export default function AluminiumDoorPage() {
                       ₹{Math.round(calculations.total + calculations.addonsTotal)}
                     </div>
                   </button>
+                  {/* <button New — commented out */}
+                  {/* <button
+                    onClick={() => { ... }}
+                  >New</button> */}
                   <button
                     onClick={() => {
-                      setHeight(65)
-                      setWidth(30)
-                      setHeightSoot(0)
-                      setWidthSoot(0)
-                      setChaukhat(true)
-                      setAccessories(true)
-                      setDecorFilm(true)
-                      setBrownCoated(true)
-                      setSelectedThickness('1.2 MM')
-                      setShowPrintDetails(false)
-                      setHeightWarning(null)
-                      setWidthWarning(null)
-                    }}
-                    className="px-4 py-3 border-2 border-[var(--muted)]/30 text-[var(--fg)] hover:border-[var(--accent)] hover:bg-[var(--muted)]/10 transition-colors rounded font-medium"
-                    style={{ backgroundColor: 'var(--box-bg)' }}
-                  >
-                    New
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Build specifications string
                       const heightStr = height === '' ? '0' : height.toString()
                       const widthStr = width === '' ? '0' : width.toString()
                       const heightDisplay = heightSoot > 0 ? `${heightStr}" ${heightSoot}/8"` : `${heightStr}"`
                       const widthDisplay = widthSoot > 0 ? `${widthStr}" ${widthSoot}/8"` : `${widthStr}"`
-                      
                       const specsParts = [
                         `Height: ${heightDisplay} × Width: ${widthDisplay}`,
                         `Thickness: ${selectedThickness}`,
                       ]
-                      
                       const options = []
                       if (chaukhat) options.push('Chaukhat')
                       if (accessories) options.push('Accessories')
                       if (decorFilm) options.push('Decor Film')
                       if (brownCoated) options.push('Brown Coated')
-                      
-                      if (options.length > 0) {
-                        specsParts.push(`Options: ${options.join(', ')}`)
-                      }
-                      
+                      if (options.length > 0) specsParts.push(`Options: ${options.join(', ')}`)
                       const specifications = specsParts.join(' | ')
                       const totalPrice = Math.round(calculations.total + calculations.addonsTotal)
-                      
                       addToCart({
                         type: 'aluminium-door',
                         name: 'Aluminium Door',
@@ -491,36 +461,38 @@ export default function AluminiumDoorPage() {
                         decorFilm,
                         brownCoated,
                       })
-                      
-                      // Optionally navigate to cart or show a success message
-                      // router.push('/cart')
+                      setAddedToCart(true)
+                      setTimeout(() => setAddedToCart(false), 1500)
                     }}
-                    className="px-4 py-3 border-2 border-[var(--accent)] text-[var(--fg)] hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors rounded font-medium"
-                    style={{ backgroundColor: 'var(--box-bg)' }}
+                    className={`px-4 py-3 border-2 rounded font-medium transition-all duration-200 active:scale-95 ${
+                      addedToCart
+                        ? 'border-green-500 bg-green-500 text-white scale-95'
+                        : 'border-[var(--accent)] text-[var(--fg)] hover:bg-[var(--fg)] hover:text-[var(--bg)]'
+                    }`}
+                    style={addedToCart ? {} : { backgroundColor: 'var(--box-bg)' }}
                   >
-                    Add To Cart
+                    {addedToCart ? (
+                      <span className="flex items-center justify-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Added
+                      </span>
+                    ) : 'Add To Cart'}
                   </button>
                 </div>
 
-                {/* Additional Buttons: D1, D2, D3 */}
-                <div className="mt-3 p-3 border border-[var(--muted)]/20 rounded-lg overflow-x-auto" style={{ backgroundColor: 'var(--box-bg-track)' }}>
+                {/* D1, D2, D3 — commented out */}
+                {/* <div className="mt-3 p-3 border border-[var(--muted)]/20 rounded-lg overflow-x-auto" style={{ backgroundColor: 'var(--box-bg-track)' }}>
                   <div className="flex gap-3 justify-start">
-                    <button className="w-12 h-12 border border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50 hover:bg-[var(--muted)]/10 transition-colors rounded text-sm font-medium flex items-center justify-center flex-shrink-0">
-                      D1
-                    </button>
-                    <button className="w-12 h-12 border border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50 hover:bg-[var(--muted)]/10 transition-colors rounded text-sm font-medium flex items-center justify-center flex-shrink-0">
-                      D2
-                    </button>
-                    <button className="w-12 h-12 border border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50 hover:bg-[var(--muted)]/10 transition-colors rounded text-sm font-medium flex items-center justify-center flex-shrink-0">
-                      D3
-                    </button>
+                    <button>D1</button>
+                    <button>D2</button>
+                    <button>D3</button>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
-
-          {/* Detailed Breakdown - Hidden by default */}
           {showPrintDetails && (
             <>
           {/* Detailed Breakdown */}

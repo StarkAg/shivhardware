@@ -18,9 +18,14 @@ export default function Home() {
         ]}
         mediaType="carousel"
         mediaSrc={[
-          { type: 'image', src: '/assets/hero-1.jpg', poster: '/assets/hero-1.jpg' },
-          { type: 'video', src: '/assets/vid.mp4', poster: '/assets/hero-video-frame.jpg' },
-          { type: 'image', src: '/assets/hero-2.jpg', poster: '/assets/hero-2.jpg' },
+          { type: 'image', src: '/assets/Gemini_Generated_Image_r5x9s5r5x9s5r5x9.png' },
+          { type: 'image', src: '/assets/Gemini_Generated_Image_al57hgal57hgal57.png' },
+          { type: 'image', src: '/assets/Gemini_Generated_Image_li0rn8li0rn8li0r.png' },
+          { type: 'image', src: '/assets/Gemini_Generated_Image_ejtid0ejtid0ejti.png' },
+          { type: 'image', src: '/assets/Gemini_Generated_Image_sa0iwnsa0iwnsa0i.png' },
+          { type: 'image', src: '/assets/Gemini_Generated_Image_vr21xdvr21xdvr21.png' },
+          { type: 'image', src: '/assets/Gemini_Generated_Image_5egbsq5egbsq5egb.png' },
+          { type: 'video', src: '/assets/vid.mp4', poster: '/assets/Gemini_Generated_Image_r5x9s5r5x9s5r5x9.png' },
         ]}
         ctas={[
           { text: 'Explore Collections', href: '/collections', variant: 'primary' },
@@ -30,15 +35,11 @@ export default function Home() {
       />
       
       <section id="collections" className="bg-[var(--bg)]">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 pt-16 sm:pt-20">
-          <div className="max-w-4xl mx-auto text-center mb-16 md:mb-24">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 text-[var(--fg)]">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 pt-8 sm:pt-16">
+          <div className="max-w-4xl mx-auto text-center mb-0 md:mb-24">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 text-[var(--fg)]">
               Our Collections
             </h2>
-            <p className="text-lg md:text-xl text-[var(--muted)] leading-relaxed">
-              Each collection represents a distinct approach to door making—from modern minimalism to heritage craftsmanship. 
-              Explore our range of thoughtfully designed doors.
-            </p>
           </div>
           <CollectionShowcase collections={collectionsMetadata} />
         </div>

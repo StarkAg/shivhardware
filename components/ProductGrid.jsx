@@ -50,13 +50,15 @@ export default function CollectionShowcase({ collections = [] }) {
     <section className="container mx-auto px-4 sm:px-6 md:px-8 py-16 sm:py-20 md:py-24">
       <div
         ref={gridRef}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+            className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8"
       >
-        {displayCollections.map((collection, index) => (
+        {displayCollections.map((collection, index) => {
+          const isLastOdd = index === displayCollections.length - 1 && displayCollections.length % 2 !== 0
+          return (
           <Link
             key={collection.id}
             href={collection.href || `/collections/${collection.slug || collection.id}`}
-            className="group relative block overflow-hidden rounded-lg hover-scale"
+            className={`group relative block overflow-hidden rounded-lg hover-scale ${isLastOdd ? 'col-start-1 col-end-3 sm:col-start-auto sm:col-end-auto max-w-[50%] sm:max-w-none mx-auto sm:mx-0 w-full' : ''}`}
           >
             <article
               ref={(el) => {
@@ -81,14 +83,15 @@ export default function CollectionShowcase({ collections = [] }) {
               </div>
 
               {/* Collection Title - Below image */}
-              <div className="p-4 bg-[var(--bg)]">
-                <h3 className="text-lg md:text-xl font-bold text-[var(--fg)] text-center">
+              <div className="p-2 md:p-4 bg-[var(--bg)]">
+                <h3 className="text-sm md:text-xl font-bold text-[var(--fg)] text-center leading-tight">
                   {collection.title}
                 </h3>
               </div>
             </article>
           </Link>
-        ))}
+          )
+        })}
       </div>
     </section>
   )

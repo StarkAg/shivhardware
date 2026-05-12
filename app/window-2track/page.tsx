@@ -91,19 +91,10 @@ function WindowCalculatorContent() {
   // Convert area to m² for display (1 sqft = 0.092903 m²)
   const areaInM2 = calculations ? (calculations.area * 0.092903).toFixed(2) : '0.00'
 
-  // Maximize container space
-  const PADDING = 30
-  const CONTAINER_HEIGHT_PX = 700 - (PADDING * 2) // 640px available
-  const CONTAINER_WIDTH_PX = 640
-
-  // Calculate scale factor
-  const scaleByHeight = CONTAINER_HEIGHT_PX / MAX_HEIGHT
-  const scaleByWidth = CONTAINER_WIDTH_PX / MAX_WIDTH
-  const optimalScaleFactor = Math.min(scaleByHeight, scaleByWidth)
-
-  // Calculate scaled dimensions
-  const scaledWidth = calculations ? calculations.widthInch * optimalScaleFactor : 480
-  const scaledHeight = calculations ? calculations.heightInch * optimalScaleFactor : 360
+  // Use percentage-based sizing for responsive layout
+  // Window dimensions as % of max dimensions drive the visual size
+  const widthPct = calculations ? (calculations.widthInch / MAX_WIDTH) * 100 : (48 / MAX_WIDTH) * 100
+  const heightPct = calculations ? (calculations.heightInch / MAX_HEIGHT) * 100 : (60 / MAX_HEIGHT) * 100
 
   return (
     <main className="min-h-screen">
@@ -147,7 +138,12 @@ function WindowCalculatorContent() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
             {/* Left Side - Window Diagram */}
             <div className="space-y-6 flex flex-col">
-              <div className="border border-[var(--muted)]/20 p-8 bg-black/20 backdrop-blur-sm rounded-lg relative" style={{ height: '700px' }}>
+              <div className="border border-[var(--muted)]/20 p-4 sm:p-8 bg-black/20 backdrop-blur-sm rounded-lg relative"
+                style={{
+                  aspectRatio: `${MAX_WIDTH} / ${MAX_HEIGHT}`,
+                  maxHeight: '60vh',
+                }}
+              >
                 {/* Area Display - Corner of Box */}
                 <div className="absolute top-2 right-2 text-center p-1.5 bg-[var(--bg)]/90 border border-[var(--muted)]/30 rounded shadow-lg backdrop-blur-sm z-10">
                   <p className="text-[9px] text-[var(--muted)] mb-0.5 leading-tight">Area</p>
@@ -157,14 +153,12 @@ function WindowCalculatorContent() {
                 
                 {/* Window Visual - Properly scaled */}
                 {calculations && (
-                  <div className="absolute inset-0 flex items-center justify-center" style={{ padding: `${PADDING}px` }}>
+                  <div className="absolute inset-4 flex items-center justify-center">
                     <div 
                       className="relative"
                       style={{
-                        width: `${scaledWidth}px`,
-                        height: `${scaledHeight}px`,
-                        maxWidth: '100%',
-                        maxHeight: '100%',
+                        width: `${widthPct}%`,
+                        height: `${heightPct}%`,
                       }}
                     >
                       {/* Frame (Window Frame) */}
@@ -389,10 +383,10 @@ function WindowCalculatorContent() {
                 </label>
                 
                 {windowType === '2track' ? (
-                  <div className="flex gap-4">
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => setThickness2Track('1.2 MM')}
-                      className={`flex-1 px-4 py-3 border-2 rounded transition-colors ${
+                      className={`flex-1 min-w-[80px] px-4 py-3 border-2 rounded transition-colors ${
                         thickness2Track === '1.2 MM'
                           ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
                           : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'
@@ -402,7 +396,7 @@ function WindowCalculatorContent() {
                     </button>
                     <button
                       onClick={() => setThickness2Track('1.6 MM')}
-                      className={`flex-1 px-4 py-3 border-2 rounded transition-colors relative ${
+                      className={`flex-1 min-w-[80px] px-4 py-3 border-2 rounded transition-colors relative ${
                         thickness2Track === '1.6 MM'
                           ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
                           : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'
@@ -415,7 +409,7 @@ function WindowCalculatorContent() {
                     </button>
                     <button
                       onClick={() => setThickness2Track('1.2 MM Hindalco')}
-                      className={`flex-1 px-4 py-3 border-2 rounded transition-colors ${
+                      className={`flex-1 min-w-[120px] px-4 py-3 border-2 rounded transition-colors ${
                         thickness2Track === '1.2 MM Hindalco'
                           ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
                           : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'
@@ -425,10 +419,10 @@ function WindowCalculatorContent() {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex gap-4">
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => setThickness3Track('1.2 mm')}
-                      className={`flex-1 px-4 py-3 border-2 rounded transition-colors ${
+                      className={`flex-1 min-w-[80px] px-4 py-3 border-2 rounded transition-colors ${
                         thickness3Track === '1.2 mm'
                           ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
                           : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'
@@ -438,7 +432,7 @@ function WindowCalculatorContent() {
                     </button>
                     <button
                       onClick={() => setThickness3Track('1.6 mm')}
-                      className={`flex-1 px-4 py-3 border-2 rounded transition-colors relative ${
+                      className={`flex-1 min-w-[80px] px-4 py-3 border-2 rounded transition-colors relative ${
                         thickness3Track === '1.6 mm'
                           ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
                           : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'
@@ -451,7 +445,7 @@ function WindowCalculatorContent() {
                     </button>
                     <button
                       onClick={() => setThickness3Track('1.2 mm Hindalco')}
-                      className={`flex-1 px-4 py-3 border-2 rounded transition-colors ${
+                      className={`flex-1 min-w-[120px] px-4 py-3 border-2 rounded transition-colors ${
                         thickness3Track === '1.2 mm Hindalco'
                           ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
                           : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'
@@ -466,10 +460,10 @@ function WindowCalculatorContent() {
               {/* Glass Type */}
               <div>
                 <label className="block text-sm font-medium mb-3 text-[var(--fg)]">Glass Type:</label>
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => setGlassType('clear')}
-                    className={`flex-1 px-4 py-3 border-2 rounded transition-colors ${
+                    className={`flex-1 min-w-[80px] px-4 py-3 border-2 rounded transition-colors ${
                       glassType === 'clear'
                         ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
                         : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'
@@ -479,7 +473,7 @@ function WindowCalculatorContent() {
                   </button>
                   <button
                     onClick={() => setGlassType('reflective')}
-                    className={`flex-1 px-4 py-3 border-2 rounded transition-colors ${
+                    className={`flex-1 min-w-[80px] px-4 py-3 border-2 rounded transition-colors ${
                       glassType === 'reflective'
                         ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--bg)]'
                         : 'border-[var(--muted)]/30 bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--muted)]/50'

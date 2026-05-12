@@ -73,7 +73,7 @@ export default function CalculatorsPage() {
                   ref={(el) => {
                     if (el) cardsRef.current[index] = el
                   }}
-                  className="relative h-[70vh] min-h-[500px] overflow-hidden"
+                  className="relative h-[50vh] min-h-[280px] md:h-[70vh] md:min-h-[500px] overflow-hidden"
                 >
                   {/* Calculator Image - Full bleed */}
                   <div className="absolute inset-0">

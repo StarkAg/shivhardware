@@ -13,6 +13,7 @@ export default function CursorFollower() {
   const rafRef = useRef(null)
   const [isHovering, setIsHovering] = useState(false)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
 
   // Current position (where cursor is)
   const currentPos = useRef({ x: 0, y: 0 })
@@ -43,6 +44,7 @@ export default function CursorFollower() {
         x: e.clientX,
         y: e.clientY,
       }
+      setIsVisible(true)
     }
 
     // Handle hover scale on elements with .hover-scale class
@@ -144,6 +146,7 @@ export default function CursorFollower() {
       ref={cursorRef}
       className="cursor-follower"
       aria-hidden="true"
+      style={{ opacity: isVisible ? 1 : 0 }}
     >
       <div
         className="cursor-follower-inner"

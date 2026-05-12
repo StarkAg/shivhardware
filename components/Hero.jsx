@@ -32,6 +32,7 @@ export default function Hero({
   const [autoplayBlocked, setAutoplayBlocked] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
+  const [isMobile, setIsMobile] = useState(false)
   const heroRef = useRef(null)
   const mediaRef = useRef(null)
   const videoRef = useRef(null)
@@ -39,6 +40,16 @@ export default function Hero({
   const titleRef = useRef(null)
   const subtitleRef = useRef(null)
   const ctasRef = useRef(null)
+
+  // Detect mobile to skip video
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent))
+  }, [])
+
+  // Filter out video slides on mobile
+  const effectiveMediaSrc = Array.isArray(mediaSrc) && isMobile
+    ? mediaSrc.filter(m => m.type !== 'video')
+    : mediaSrc
 
   useEffect(() => {
     if (!heroRef.current) return
@@ -111,7 +122,7 @@ export default function Hero({
         className={`absolute inset-0 w-full h-full grayscale overflow-hidden ${videoReady ? 'hero-media--ready' : ''}`}
       >
         {/* Handle array of media (Swiper carousel) */}
-        {Array.isArray(mediaSrc) && mediaSrc.length > 0 ? (
+        {Array.isArray(effectiveMediaSrc) && effectiveMediaSrc.length > 0 ? (
           <Swiper
             modules={[Autoplay, EffectFade]}
             effect="fade"
@@ -122,7 +133,7 @@ export default function Hero({
             loop={true}
             className="absolute inset-0 w-full h-full"
           >
-            {mediaSrc.map((media, index) => (
+            {effectiveMediaSrc.map((media, index) => (
               <SwiperSlide key={index} className="absolute inset-0">
                 {media.type === 'video' ? (
                   <video
@@ -131,7 +142,7 @@ export default function Hero({
                     loop
                     playsInline
                     autoPlay
-                    preload="metadata"
+                    preload="auto"
                     poster={media.poster || '/assets/hero-video-frame.jpg'}
                     onCanPlayThrough={() => setVideoReady(true)}
                     onError={() => setAutoplayBlocked(true)}
@@ -151,7 +162,7 @@ export default function Hero({
               </SwiperSlide>
             ))}
           </Swiper>
-        ) : mediaType === 'video' ? (
+        ) : mediaType === 'video' && !isMobile ? (
           <video
             ref={videoRef}
             className="absolute inset-0 w-full h-full object-cover"
@@ -159,7 +170,7 @@ export default function Hero({
             loop
             playsInline
             autoPlay
-            preload="metadata"
+            preload="auto"
             poster="/assets/hero-video-frame.jpg"
             onCanPlayThrough={() => setVideoReady(true)}
             onError={(e) => {
@@ -202,12 +213,12 @@ export default function Hero({
               <>
                 {/* Force the additional word onto the next line for a clean stacked title */}
                 <br />
-                <span className="inline-block text-white/90 align-baseline relative h-[1.1em] whitespace-nowrap">
+                <span className="inline-block text-white/90 align-baseline relative h-[1.1em] min-w-[4ch] w-full whitespace-nowrap">
                   {/* Crossfade full words; one is always visible */}
                   {rotatingWords.map((word, idx) => (
                     <span
                       key={`${word}-${idx}`}
-                      className="absolute left-1/2 -translate-x-1/2 top-0 transition-opacity duration-[700ms] ease-out"
+                      className="absolute left-1/2 -translate-x-1/2 top-0 transition-opacity duration-[700ms] ease-out whitespace-nowrap"
                       style={{
                         opacity: idx === currentWordIndex ? 1 : 0,
                       }}
