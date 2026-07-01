@@ -21,6 +21,16 @@ const nextConfig = {
   // Optimize for production
   compress: true,
   poweredByHeader: false,
+  // Keep the earlier static catalogue link working after moving to Blob storage
+  async redirects() {
+    return [
+      {
+        source: '/catalogs/c/:slug.html',
+        destination: '/catalogs/c/:slug',
+        permanent: true,
+      },
+    ]
+  },
   // Exclude scraping folder from compilation
   webpack: (config) => {
     config.watchOptions = {
