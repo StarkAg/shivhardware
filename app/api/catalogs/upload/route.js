@@ -20,7 +20,7 @@ export async function POST(request) {
           allowedContentTypes: ['application/pdf', 'image/jpeg'],
           addRandomSuffix: false,
           allowOverwrite: true,
-          maximumSizeInBytes: 50 * 1024 * 1024, // 50 MB per file
+          maximumSizeInBytes: 250 * 1024 * 1024, // 250 MB per file
         }
       },
       onUploadCompleted: async () => {},

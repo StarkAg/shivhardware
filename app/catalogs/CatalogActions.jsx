@@ -2,6 +2,15 @@
 
 import { useState } from 'react'
 
+function IconTrash(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  )
+}
+
 function IconCopy(props) {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -27,8 +36,35 @@ function IconWhatsApp(props) {
   )
 }
 
-export default function CatalogActions({ link, name }) {
+// The confirm button lands in a different spot at each of the 5 steps, so the
+// delete can't be dismissed by rapid-clicking in one place.
+const CONFIRM_POS = [
+  'left-6 top-1/3',
+  'right-6 top-1/3',
+  'left-6 bottom-1/3',
+  'right-6 bottom-1/3',
+  'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
+]
+
+export default function CatalogActions({ link, name, slug, inline = false, deletable = false, onDelete }) {
   const [copied, setCopied] = useState(false)
+  const [confirmStep, setConfirmStep] = useState(0) // 0 = closed, 1..5 = which confirmation
+
+  const remove = () => {
+    if (!slug) return
+    setConfirmStep(1)
+  }
+  const advanceConfirm = () => {
+    setConfirmStep((s) => {
+      if (s >= CONFIRM_POS.length) {
+        // All 5 confirmed → instant removal, background delete.
+        onDelete?.(slug)
+        return 0
+      }
+      return s + 1
+    })
+  }
+  const cancelConfirm = () => setConfirmStep(0)
 
   const copy = async () => {
     try {
@@ -48,9 +84,94 @@ export default function CatalogActions({ link, name }) {
     }
   }
 
-  const waText = encodeURIComponent(`${name}\n${link}`)
-  const waHref = `https://wa.me/?text=${waText}`
+  const waHref = `https://wa.me/?text=${encodeURIComponent(link)}`
 
+  // Compact icon-only row (used in the catalogue list)
+  if (inline) {
+    const iconBtn = 'inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors'
+    return (
+      <>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={copy}
+            title={copied ? 'Copied' : 'Copy link'}
+            aria-label="Copy link"
+            className={`${iconBtn} border border-white/20 text-white hover:bg-white hover:text-black`}
+          >
+            {copied ? <IconCheck /> : <IconCopy />}
+          </button>
+          <a
+            href={waHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Share on WhatsApp"
+            aria-label="Share on WhatsApp"
+            className={`${iconBtn} bg-white text-black hover:opacity-90`}
+          >
+            <IconWhatsApp />
+          </a>
+          {deletable && (
+            <button
+              type="button"
+              onClick={remove}
+              title="Delete catalogue"
+              aria-label="Delete catalogue"
+              className={`${iconBtn} border border-white/20 text-[#999] hover:border-red-500/60 hover:text-red-400`}
+            >
+              <IconTrash />
+            </button>
+          )}
+        </div>
+
+        {confirmStep > 0 && (
+          <div
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            onClick={cancelConfirm}
+          >
+            {/* Message */}
+            <div className="absolute left-1/2 top-12 w-full max-w-xs -translate-x-1/2 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-400">
+                Confirm delete — {confirmStep} of {CONFIRM_POS.length}
+              </p>
+              <p className="mt-3 text-sm text-white">
+                Delete “{name}”? This permanently removes the catalogue and its share link.
+              </p>
+            </div>
+
+            {/* Confirm button — moves each step */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                advanceConfirm()
+              }}
+              className={`absolute ${CONFIRM_POS[confirmStep - 1]} inline-flex items-center gap-2 rounded-lg bg-red-500 px-5 py-3 text-sm font-semibold text-white shadow-2xl transition-colors hover:bg-red-600`}
+            >
+              <IconTrash />
+              {confirmStep === CONFIRM_POS.length ? 'Confirm delete' : `Confirm (${confirmStep}/${CONFIRM_POS.length})`}
+            </button>
+
+            {/* Cancel — stays put, easy to reach */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                cancelConfirm()
+              }}
+              className="absolute bottom-12 left-1/2 -translate-x-1/2 rounded-lg border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-white hover:text-black"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </>
+    )
+  }
+
+  // Labeled buttons (used on the upload success screen)
   return (
     <div className="mt-3 flex items-center gap-2">
       <button
