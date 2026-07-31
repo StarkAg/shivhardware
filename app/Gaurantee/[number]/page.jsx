@@ -86,7 +86,7 @@ export default async function GuaranteePage({ params }) {
   if (!doc) {
     return (
       <div className="gc-wrap">
-        <style>{styles}</style>
+        <style dangerouslySetInnerHTML={{ __html: styles }} />
         <div className="gc-head"><h1>Shiv Hardware<small>Online Guarantee Card</small></h1><span className="gc-tag">{number}</span></div>
         <div className="gc-miss">
           <h2>Card not found</h2>
