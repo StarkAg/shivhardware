@@ -138,8 +138,6 @@ export default async function GuaranteePage({ params }) {
         }) : <div className="gc-empty">No items listed on this card.</div>}
         {total > 0 ? <div className="gc-total"><span>Total</span><span>₹{Math.round(total)}</span></div> : null}
       </div>
-
-      <p className="gc-muted">Shiv Hardware Store · Ramgarh Cantt</p>
     </div>
   )
 }

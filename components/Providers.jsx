@@ -12,9 +12,9 @@ import { CartProvider } from '@/contexts/CartContext'
 export default function Providers({ children }) {
   const pathname = usePathname()
 
-  // Catalogue pages (portal, admin uploader, shareable links) are standalone.
+  // Catalogue pages and the public guarantee-card view are standalone.
   // Strip all site chrome: no header, footer, smooth-scroll or cursor follower.
-  if (pathname?.startsWith('/catalogs')) {
+  if (pathname?.startsWith('/catalogs') || pathname?.startsWith('/Gaurantee')) {
     return children
   }
 
