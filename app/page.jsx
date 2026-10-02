@@ -2,10 +2,31 @@ import Hero from '@/components/Hero'
 import CollectionShowcase from '@/components/ProductGrid' // Component renamed but file stays ProductGrid.jsx
 import ValueProps from '@/components/ValueProps'
 import collectionsMetadata from '@/data/collections-metadata.json'
+import { preload } from 'react-dom'
+
+// Structured JSON-LD data for organization (home page only)
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Shiv Hardware Store',
+  url: 'https://shivhardware.store',
+  logo: 'https://shivhardware.store/White%20Logo.png',
+  sameAs: [],
+  contactPoint: [{
+    '@type': 'ContactPoint',
+    telephone: '+91-80928-50954',
+    contactType: 'customer service',
+    areaServed: 'IN',
+  }],
+}
 
 export default function Home() {
+  // Hero images for a faster first paint; only this page shows them.
+  preload('/assets/hero-1.jpg', { as: 'image' })
+  preload('/assets/hero-video-frame.jpg', { as: 'image' })
   return (
     <main className="min-h-screen">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
       <Hero
         title="Doors that elevate"
         subtitle="Turning ordinary spaces into moments worth remembering."

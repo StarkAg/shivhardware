@@ -36,6 +36,9 @@ export const metadata = {
     creator: '@shivhardware', // TODO: Replace with actual Twitter handle
   },
 
+  // Favicon / app icon (in metadata, so a page such as the guarantee card can replace it)
+  icons: { icon: { url: '/assets/Favicon.png', type: 'image/png' } },
+
   // Canonical URL
   alternates: {
     canonical: 'https://shivhardware.store',
@@ -63,21 +66,6 @@ export const viewport = {
   themeColor: '#0b0b0b',
 }
 
-// Structured JSON-LD data for organization
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Shiv Hardware Store',
-  url: 'https://shivhardware.store',
-  logo: 'https://shivhardware.store/White%20Logo.png',
-  sameAs: [],
-  contactPoint: [{
-    '@type': 'ContactPoint',
-    telephone: '+91-80928-50954',
-    contactType: 'customer service',
-    areaServed: 'IN',
-  }],
-}
 
 export default function RootLayout({ children }) {
   return (
@@ -87,21 +75,8 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-        {/* Favicon / app icon */}
-        <link rel="icon" href="/assets/Favicon.png" type="image/png" />
-        
-        {/* Preload critical hero assets for faster LCP */}
-        <link rel="preload" as="image" href="/assets/hero-1.jpg" />
-        <link rel="preload" as="image" href="/assets/hero-video-frame.jpg" />
       </head>
       <body className="font-sans">
-          {/* Structured JSON-LD Data */}
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(organizationSchema),
-            }}
-          />
         <Providers>
             {children}
         </Providers>
