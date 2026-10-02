@@ -12,26 +12,29 @@ const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://sensible-panth
 // number AND its secret token match (cards carry Aadhaar + mobile, and numbers
 // are sequential), so the token must be passed through — without it every scan
 // is "Card not found".
-async function getGuarantee(number, token) {
+//
+// Returns every card the QR opens -- usually one. Cards printed before
+// 2026-10-02 in a two-card tray pass share one QR, so both come back.
+async function getGuarantees(number, token) {
+  if (!token) return []
   try {
     const res = await fetch(`${CONVEX_URL}/api/query`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        path: 'documents:getGuaranteeByNumber',
-        args: token ? { number, token } : { number },
+        path: 'documents:getGuaranteesForQr',
+        args: { number, token },
         format: 'json',
       }),
       cache: 'no-store',
     })
-    if (!res.ok) return null
+    if (!res.ok) return []
     const json = await res.json()
-    if (json.status !== 'success' || !json.value) return null
-    const v = json.value
+    if (json.status !== 'success' || !Array.isArray(json.value)) return []
     // Convex stores the full payload under `document`; flatten it up.
-    return v.document && typeof v.document === 'object' ? { ...v, ...v.document } : v
+    return json.value.map(v => (v.document && typeof v.document === 'object' ? { ...v, ...v.document } : v))
   } catch {
-    return null
+    return []
   }
 }
 
@@ -86,9 +89,9 @@ const styles = `
 export default async function GuaranteePage({ params, searchParams }) {
   const { number } = await params
   const { k } = (await searchParams) ?? {}
-  const doc = await getGuarantee(number, typeof k === 'string' ? k.trim() : '')
+  const docs = await getGuarantees(number, typeof k === 'string' ? k.trim() : '')
 
-  if (!doc) {
+  if (!docs.length) {
     return (
       <div className="gc-wrap">
         <style dangerouslySetInnerHTML={{ __html: styles }} />
@@ -101,19 +104,27 @@ export default async function GuaranteePage({ params, searchParams }) {
     )
   }
 
+  return (
+    <div className="gc-wrap">
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
+      <div className="gc-head">
+        <h1>Shiv Hardware<small>Online Guarantee Card</small></h1>
+        <span className="gc-tag">{docs[0].number || number}</span>
+      </div>
+      {docs.length > 1 ? <p className="gc-muted" style={{ margin: '0 0 12px' }}>This QR covers {docs.length} cards printed together.</p> : null}
+      {docs.map((doc, i) => <CardView key={doc._id || i} doc={doc} />)}
+    </div>
+  )
+}
+
+function CardView({ doc }) {
   const cust = doc.customer || {}
   const items = Array.isArray(doc.items) ? doc.items : []
   const total = items.reduce((s, it) => s + (Number(it.amount) || 0), 0)
   const dateStr = doc.date ? new Date(doc.date).toLocaleDateString('en-GB') : ''
 
   return (
-    <div className="gc-wrap">
-      <style>{styles}</style>
-      <div className="gc-head">
-        <h1>Shiv Hardware<small>Online Guarantee Card</small></h1>
-        <span className="gc-tag">{doc.number || number}</span>
-      </div>
-
+    <>
       <div className="gc-card">
         <div className="gc-name">{cust.name || '—'}</div>
         <div className="gc-kv"><span className="k">Aadhaar</span><span className="v">{cust.uid || 'N/A'}</span></div>
@@ -143,6 +154,6 @@ export default async function GuaranteePage({ params, searchParams }) {
         }) : <div className="gc-empty">No items listed on this card.</div>}
         {total > 0 ? <div className="gc-total"><span>Total</span><span>₹{Math.round(total)}</span></div> : null}
       </div>
-    </div>
+    </>
   )
 }
