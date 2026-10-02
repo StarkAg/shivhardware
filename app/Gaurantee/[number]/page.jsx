@@ -8,14 +8,18 @@ export const dynamic = 'force-dynamic'
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://sensible-panther-176.convex.cloud'
 
-async function getGuarantee(number) {
+// The QR is .../Gaurantee/<number>?k=<token>. Convex only opens a card when the
+// number AND its secret token match (cards carry Aadhaar + mobile, and numbers
+// are sequential), so the token must be passed through — without it every scan
+// is "Card not found".
+async function getGuarantee(number, token) {
   try {
     const res = await fetch(`${CONVEX_URL}/api/query`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         path: 'documents:getGuaranteeByNumber',
-        args: { number },
+        args: token ? { number, token } : { number },
         format: 'json',
       }),
       cache: 'no-store',
@@ -79,9 +83,10 @@ const styles = `
   .gc-miss h2 { color: #1c1917; margin: 0 0 8px; }
 `
 
-export default async function GuaranteePage({ params }) {
+export default async function GuaranteePage({ params, searchParams }) {
   const { number } = await params
-  const doc = await getGuarantee(number)
+  const { k } = (await searchParams) ?? {}
+  const doc = await getGuarantee(number, typeof k === 'string' ? k.trim() : '')
 
   if (!doc) {
     return (
