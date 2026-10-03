@@ -68,6 +68,10 @@ function fmtDim(d) {
   const frac = soot > 0 && soot < 8 ? EIGHTHS[soot] : ''
   return `${d.inches || (frac ? '' : 0)}${frac}″`
 }
+/** An item's size as the bill wrote it ("7 X 4" feet) when the card carries one, else its inches. */
+function itemSize(it) {
+  return (it.sizeLabel && String(it.sizeLabel).trim()) || fmtSize(it.height, it.width)
+}
 function fmtSize(h, w) {
   const a = fmtDim(h)
   const b = fmtDim(w)
@@ -460,7 +464,7 @@ function CardView({ doc, token, claims }) {
       <div className="gc-card">
         <h2>Items</h2>
         {items.length ? items.map((it, i) => {
-          const spec = [fmtThickness(it.thickness), fmtSize(it.height, it.width)].filter(Boolean)
+          const spec = [fmtThickness(it.thickness), itemSize(it)].filter(Boolean)
           const qty = Number(it.qty) || 0
           return (
             <div className="gc-item" key={i}>
@@ -521,7 +525,7 @@ function CardView({ doc, token, claims }) {
         number={doc.number}
         token={token}
         items={items.map((it) => ({
-          label: [it.brandName || 'Item', fmtThickness(it.thickness), fmtSize(it.height, it.width)].filter(Boolean).join(' · '),
+          label: [it.brandName || 'Item', fmtThickness(it.thickness), itemSize(it)].filter(Boolean).join(' · '),
           qty: Number(it.qty) || 0,
         }))}
       />
