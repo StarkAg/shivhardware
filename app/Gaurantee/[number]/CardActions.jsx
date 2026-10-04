@@ -324,7 +324,7 @@ function Submitted({ refNo, phone, onClose, seller }) {
   )
 }
 
-// `seller` is the shop's name while a card is in its first 10 days, else empty (neutral).
+// `seller` is the shop's name while a card is in its first 20 days, else empty (neutral).
 export default function CardActions({ convexUrl, number, token, items, seller = '' }) {
   const [open, setOpen] = useState(false)
   const [done, setDone] = useState(null)

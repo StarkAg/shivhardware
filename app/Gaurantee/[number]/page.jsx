@@ -118,10 +118,10 @@ function Stamp({ years, seed }) {
 const rupees = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`
 
 /**
- * A card shows Shiv Hardware's name and logo for its first 10 days, counted from
+ * A card shows Shiv Hardware's name and logo for its first 20 days, counted from
  * its own date, and is neutral after that (no seller named anywhere, below).
  */
-const BRANDED_DAYS = 10
+const BRANDED_DAYS = 20 // the same in the QR short link (Shiv_Panel/qr-redirect/middleware.js)
 function isBranded(doc) {
   const issued = Date.parse(doc?.date ?? '') || Number(doc?.createdAt) || 0
   return issued > 0 && Date.now() - issued < BRANDED_DAYS * 24 * 60 * 60 * 1000
@@ -129,7 +129,7 @@ function isBranded(doc) {
 
 // Neutral, nothing here names the seller: the site-wide title, description, author,
 // social preview, canonical link and icon are all replaced for this page. A card in
-// its first 10 days carries the shop's name and icon instead.
+// its first 20 days carries the shop's name and icon instead.
 export async function generateMetadata({ params, searchParams }) {
   const { number } = await params
   const { k } = (await searchParams) ?? {}
