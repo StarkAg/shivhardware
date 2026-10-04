@@ -38,6 +38,7 @@ next-env.d.ts
 
 # image backups
 public/scraped-images/_originals/
+public/_originals_backup/
 scraping/images/
 
 # jupyter notebooks (optional, keep if needed)
