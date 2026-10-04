@@ -31,7 +31,7 @@ function chime(ctx) {
   }
 }
 
-export default function Verified({ number }) {
+export default function Verified({ number, branded = false }) {
   const [phase, setPhase] = useState('in') // in -> leaving -> gone
 
   useEffect(() => {
@@ -72,9 +72,13 @@ export default function Verified({ number }) {
         <div className="gc-mark">
           <span className="gc-ripple" aria-hidden="true" />
           <span className="gc-logo-tile">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 2.5c2.2 1.7 4.9 2.6 7.5 2.6v5.6c0 4.9-3.2 8.4-7.5 9.8-4.3-1.4-7.5-4.9-7.5-9.8V5.1c2.6 0 5.3-.9 7.5-2.6z" />
-            </svg>
+            {branded ? (
+              <img src="/assets/guarantee/shiv-logo.png" alt="Shiv Hardware" width="154" height="174" />
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 2.5c2.2 1.7 4.9 2.6 7.5 2.6v5.6c0 4.9-3.2 8.4-7.5 9.8-4.3-1.4-7.5-4.9-7.5-9.8V5.1c2.6 0 5.3-.9 7.5-2.6z" />
+              </svg>
+            )}
           </span>
           <svg className="gc-tick" viewBox="0 0 48 48" aria-hidden="true">
             <circle className="disc" cx="24" cy="24" r="22.5" />
@@ -82,7 +86,7 @@ export default function Verified({ number }) {
           </svg>
         </div>
         <div className="gc-verify-title">Guarantee Card Verified</div>
-        <div className="gc-verify-sub">{number}</div>
+        <div className="gc-verify-sub">{number}{branded ? <><span className="sep">·</span>Shiv Hardware Store</> : null}</div>
       </div>
     </div>
   )

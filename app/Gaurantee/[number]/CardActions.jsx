@@ -100,7 +100,7 @@ function validate(f, items) {
   return e
 }
 
-function ClaimForm({ convexUrl, number, token, items, onDone }) {
+function ClaimForm({ convexUrl, number, token, items, onDone, seller }) {
   const [f, setF] = useState(empty)
   const [photos, setPhotos] = useState([]) // close-ups of the damage: { id, file, url }
   const [proof, setProof] = useState({}) // card | bill | door -> { file, url }
@@ -293,7 +293,7 @@ function ClaimForm({ convexUrl, number, token, items, onDone }) {
 
       <label className={`gc-check${tried && errors.agreed ? ' has-error' : ''}`}>
         <input type="checkbox" checked={f.agreed} onChange={set('agreed')} />
-        <span>I will present the <b>original guarantee card</b> and the <b>original bill</b> to the seller to claim the replacement, and I agree to the terms of this guarantee.</span>
+        <span>I will present the <b>original guarantee card</b> and the <b>original bill</b> to {seller || 'the seller'} to claim the replacement, and I agree to the terms of this guarantee.</span>
       </label>
       {err('agreed')}
 
@@ -307,15 +307,15 @@ function ClaimForm({ convexUrl, number, token, items, onDone }) {
   )
 }
 
-function Submitted({ refNo, phone, onClose }) {
+function Submitted({ refNo, phone, onClose, seller }) {
   return (
     <div className="gc-done">
       <svg className="gc-done-tick" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22.5" /><path d="M14.5 24.5 21 31 33.5 17.5" /></svg>
       <h4>Claim submitted</h4>
       <div className="gc-done-ref">{refNo}</div>
       <ol className="gc-next">
-        <li>The seller will review your claim and contact you on <b>{phone}</b>.</li>
-        <li>Present the <b>original guarantee card</b> and the <b>original bill</b> to the seller.</li>
+        <li>{seller || 'The seller'} will review your claim and contact you on <b>{phone}</b>.</li>
+        <li>Present the <b>original guarantee card</b> and the <b>original bill</b> to {seller || 'the seller'}.</li>
         <li>The door is inspected, and the replacement is arranged once the claim is approved.</li>
       </ol>
       <div className="gc-done-ref-note">Keep this claim number for any follow-up.</div>
@@ -324,7 +324,8 @@ function Submitted({ refNo, phone, onClose }) {
   )
 }
 
-export default function CardActions({ convexUrl, number, token, items }) {
+// `seller` is the shop's name while a card is in its first 10 days, else empty (neutral).
+export default function CardActions({ convexUrl, number, token, items, seller = '' }) {
   const [open, setOpen] = useState(false)
   const [done, setDone] = useState(null)
   const router = useRouter()
@@ -342,8 +343,8 @@ export default function CardActions({ convexUrl, number, token, items }) {
       {open ? (
         <Sheet title={done ? 'Guarantee claim' : 'Claim guarantee'} onClose={close} wide>
           {done
-            ? <Submitted refNo={done.ref} phone={done.phone} onClose={close} />
-            : <ClaimForm convexUrl={convexUrl} number={number} token={token} items={items} onDone={setDone} />}
+            ? <Submitted refNo={done.ref} phone={done.phone} onClose={close} seller={seller} />
+            : <ClaimForm convexUrl={convexUrl} number={number} token={token} items={items} onDone={setDone} seller={seller} />}
         </Sheet>
       ) : null}
     </>

@@ -4,6 +4,7 @@
 // (customer, Aadhaar, phone, guaranteed items). Rendered per-request so newly
 // printed cards resolve immediately, with no rebuild.
 
+import { cache } from 'react'
 import Verified from './Verified'
 import FitToScreen from './FitToScreen'
 import CardActions from './CardActions'
@@ -16,7 +17,10 @@ const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://sensible-panth
 // number AND its secret token match (cards carry Aadhaar + mobile, and numbers
 // are sequential), so the token must be passed through — without it every scan
 // is "Card not found". One QR, one card.
-async function getGuarantee(number, token) {
+// Once per request: the page and its tab title both need the card.
+const getGuarantee = cache(loadGuarantee)
+
+async function loadGuarantee(number, token) {
   if (!token) return null
   try {
     const res = await fetch(`${CONVEX_URL}/api/query`, {
@@ -113,12 +117,26 @@ function Stamp({ years, seed }) {
 }
 const rupees = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`
 
-// Nothing here names the seller: the site-wide title, description, author, social
-// preview, canonical link and icon are all replaced for this page.
-export async function generateMetadata({ params }) {
+/**
+ * A card shows Shiv Hardware's name and logo for its first 10 days, counted from
+ * its own date, and is neutral after that (no seller named anywhere, below).
+ */
+const BRANDED_DAYS = 10
+function isBranded(doc) {
+  const issued = Date.parse(doc?.date ?? '') || Number(doc?.createdAt) || 0
+  return issued > 0 && Date.now() - issued < BRANDED_DAYS * 24 * 60 * 60 * 1000
+}
+
+// Neutral, nothing here names the seller: the site-wide title, description, author,
+// social preview, canonical link and icon are all replaced for this page. A card in
+// its first 10 days carries the shop's name and icon instead.
+export async function generateMetadata({ params, searchParams }) {
   const { number } = await params
-  const title = `Guarantee Card ${number}`
-  const description = 'Online guarantee card record.'
+  const { k } = (await searchParams) ?? {}
+  const doc = await getGuarantee(number, typeof k === 'string' ? k.trim() : '')
+  const branded = isBranded(doc)
+  const title = branded ? `Guarantee Card ${number} — Shiv Hardware Store` : `Guarantee Card ${number}`
+  const description = branded ? 'Shiv Hardware Store guarantee card.' : 'Online guarantee card record.'
   return {
     title,
     description,
@@ -129,7 +147,9 @@ export async function generateMetadata({ params }) {
     openGraph: { type: 'website', title, description },
     twitter: { card: 'summary', title, description },
     alternates: { canonical: null },
-    icons: { icon: { url: '/assets/guarantee/shield.svg', type: 'image/svg+xml' } },
+    icons: branded
+      ? { icon: { url: '/assets/Favicon.png', type: 'image/png' } }
+      : { icon: { url: '/assets/guarantee/shield.svg', type: 'image/svg+xml' } },
     robots: { index: false, follow: false },
   }
 }
@@ -182,6 +202,8 @@ const styles = `
     border-bottom: 1px solid var(--line); }
   .gc-logo { width: 36px; height: 36px; flex: none; border-radius: 10px; background: var(--brass); color: var(--brass-ink); padding: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
   .gc-logo svg { width: 100%; height: 100%; display: block; }
+  .gc-logo.is-brand { background: #fff; padding: 4px; }
+  .gc-logo img, .gc-logo-tile img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .gc-brand { flex: 1; min-width: 0; font-size: 17px; font-weight: 800; line-height: 1.1; letter-spacing: .01em; }
   .gc-brand small { display: block; margin-top: 3px; font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .14em; }
   .gc-head-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
@@ -390,6 +412,8 @@ export default async function GuaranteePage({ params, searchParams }) {
   const token = typeof k === 'string' ? k.trim() : ''
   const [doc, claims] = await Promise.all([getGuarantee(number, token), getClaims(number, token)])
 
+  const branded = isBranded(doc)
+
   if (!doc) {
     return (
       <div className="gc-page">
@@ -408,26 +432,33 @@ export default async function GuaranteePage({ params, searchParams }) {
   return (
     <div className="gc-page">
       <style dangerouslySetInnerHTML={{ __html: styles }} />
-      <Verified number={doc.number || number} />
+      <Verified number={doc.number || number} branded={branded} />
       <div className="gc-wrap">
         <FitToScreen>
-          <Head number={doc.number || number} verified />
-          <CardView doc={doc} token={token} claims={claims} />
+          <Head number={doc.number || number} verified branded={branded} />
+          <CardView doc={doc} token={token} claims={claims} branded={branded} />
         </FitToScreen>
       </div>
     </div>
   )
 }
 
-function Head({ number, verified = false }) {
+function Head({ number, verified = false, branded = false }) {
   return (
     <div className="gc-head">
-      <span className="gc-logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
-          <path d="M12 2.5c2.2 1.7 4.9 2.6 7.5 2.6v5.6c0 4.9-3.2 8.4-7.5 9.8-4.3-1.4-7.5-4.9-7.5-9.8V5.1c2.6 0 5.3-.9 7.5-2.6z" />
-        </svg>
-      </span>
-      <div className="gc-brand">Guarantee Card<small>Online record</small></div>
+      {branded ? (
+        <span className="gc-logo is-brand"><img src="/assets/guarantee/shiv-logo.png" alt="Shiv Hardware" width="154" height="174" /></span>
+      ) : (
+        <span className="gc-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 2.5c2.2 1.7 4.9 2.6 7.5 2.6v5.6c0 4.9-3.2 8.4-7.5 9.8-4.3-1.4-7.5-4.9-7.5-9.8V5.1c2.6 0 5.3-.9 7.5-2.6z" />
+          </svg>
+        </span>
+      )}
+      <div className="gc-brand">
+        {branded ? 'Shiv Hardware' : 'Guarantee Card'}
+        <small>{branded ? 'Guarantee Card' : 'Online record'}</small>
+      </div>
       <div className="gc-head-right">
         <span className="gc-tag">{number}</span>
         {verified ? (
@@ -443,7 +474,7 @@ function Head({ number, verified = false }) {
   )
 }
 
-function CardView({ doc, token, claims }) {
+function CardView({ doc, token, claims, branded = false }) {
   const cust = doc.customer || {}
   const items = Array.isArray(doc.items) ? doc.items : []
   const total = items.reduce((s, it) => s + (Number(it.amount) || 0), 0)
@@ -521,6 +552,7 @@ function CardView({ doc, token, claims }) {
         </ul>
       </div>
       <CardActions
+        seller={branded ? 'Shiv Hardware Store' : ''}
         convexUrl={CONVEX_URL}
         number={doc.number}
         token={token}
