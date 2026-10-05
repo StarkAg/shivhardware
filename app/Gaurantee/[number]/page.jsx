@@ -62,7 +62,7 @@ async function getClaims(number, token) {
   }
 }
 const CLAIM_STATUS = { new: 'Received', reviewing: 'Under review', approved: 'Approved', rejected: 'Not approved', replaced: 'Replaced' }
-const CLAIM_ISSUE = { borer: 'Borer', air: 'Air bubbles', cracks: 'Cracks' }
+const CLAIM_ISSUE = { borer: 'Borer', air: 'Air bubbles' }
 
 // Sizes are inches + eighths (soot). Eighths print as their fraction glyph: 44 4/8" -> 44½″.
 const EIGHTHS = ['', '⅛', '¼', '⅜', '½', '⅝', '¾', '⅞']
@@ -343,7 +343,7 @@ const styles = `
   .gc-err { font-size: 12px; font-weight: 600; color: var(--red, #9f1d20); }
   .gc-note { font-size: 12px; color: var(--muted, #78716c); }
   .gc-count { position: absolute; right: 10px; top: 0; font-size: 11px; color: var(--muted, #78716c); }
-  .gc-issues { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .gc-issues { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .gc-issue { display: grid; gap: 3px; text-align: left; padding: 10px; border-radius: 12px; border: 1.5px solid var(--line, rgba(28,25,23,.12)); background: var(--bg, #e8e5df);
     color: inherit; font: inherit; cursor: pointer; }
   .gc-issue b { font-size: 14px; }
@@ -561,7 +561,7 @@ function CardView({ doc, token, claims, branded = false }) {
       <div className="gc-terms-short">
         <span>Terms</span>
         <ul>
-          <li>Covers borer, air bubbles and cracks only.</li>
+          <li>Covers borer and air bubbles only.</li>
           <li>Termite damage is not covered.</li>
           <li>Valid for the years shown, from the date on this card.</li>
           <li>Replacement requires the original card and bill, subject to inspection.</li>

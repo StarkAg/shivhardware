@@ -20,7 +20,6 @@ const CROSS = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 
 const ISSUES = [
   { id: 'borer', label: 'Borer', hint: 'Small holes or wood powder' },
   { id: 'air', label: 'Air bubbles', hint: 'Hollow gaps or blistering' },
-  { id: 'cracks', label: 'Cracks', hint: 'Splits in the surface or core' },
 ]
 
 async function convex(url, kind, path, args) {
