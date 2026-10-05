@@ -5,6 +5,7 @@
 // printed cards resolve immediately, with no rebuild.
 
 import { cache } from 'react'
+import { redirect } from 'next/navigation'
 import Verified from './Verified'
 import FitToScreen from './FitToScreen'
 import CardActions from './CardActions'
@@ -127,13 +128,27 @@ function isBranded(doc) {
   return issued > 0 && Date.now() - issued < BRANDED_DAYS * 24 * 60 * 60 * 1000
 }
 
+// The QR short link (Shiv_Panel/qr-redirect). Cards printed before it carry this
+// site's own address in their QR, so past the branded days they still opened here
+// with the shop's address in the bar. Such a card is sent to the short link, which
+// serves this same page from its own address. Requests that came through the short
+// link carry ?gc=1 (it passes its query on), so they are never sent back: no loop.
+const SHORT_URL = 'https://gcvf.vercel.app'
+function leaveShopAddress(doc, number, token, gc) {
+  if (!doc || isBranded(doc) || gc) return
+  if (!/^GC-[A-Za-z0-9-]+$/.test(number) || !/^[A-Z0-9]{8,64}$/.test(token)) return
+  redirect(`${SHORT_URL}/${number}/${token}?gc=1`)
+}
+
 // Neutral, nothing here names the seller: the site-wide title, description, author,
 // social preview, canonical link and icon are all replaced for this page. A card in
 // its first 20 days carries the shop's name and icon instead.
 export async function generateMetadata({ params, searchParams }) {
   const { number } = await params
-  const { k } = (await searchParams) ?? {}
-  const doc = await getGuarantee(number, typeof k === 'string' ? k.trim() : '')
+  const { k, gc } = (await searchParams) ?? {}
+  const token = typeof k === 'string' ? k.trim() : ''
+  const doc = await getGuarantee(number, token)
+  leaveShopAddress(doc, number, token, gc)
   const branded = isBranded(doc)
   const title = branded ? `Guarantee Card ${number} — Shiv Hardware Store` : `Guarantee Card ${number}`
   const description = branded ? 'Shiv Hardware Store guarantee card.' : 'Online guarantee card record.'
@@ -408,9 +423,10 @@ const styles = `
 
 export default async function GuaranteePage({ params, searchParams }) {
   const { number } = await params
-  const { k } = (await searchParams) ?? {}
+  const { k, gc } = (await searchParams) ?? {}
   const token = typeof k === 'string' ? k.trim() : ''
   const [doc, claims] = await Promise.all([getGuarantee(number, token), getClaims(number, token)])
+  leaveShopAddress(doc, number, token, gc)
 
   const branded = isBranded(doc)
 
