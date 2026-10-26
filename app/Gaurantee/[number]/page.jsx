@@ -84,6 +84,11 @@ function fmtDim(d) {
 function itemSize(it) {
   return (it.sizeLabel && String(it.sizeLabel).trim()) || fmtSize(it.height, it.width)
 }
+/** The size in its columns: the bill's own words in one, else height and width apart. */
+function sizeParts(it) {
+  const label = it.sizeLabel && String(it.sizeLabel).trim()
+  return label ? { label } : { h: fmtDim(it.height), w: fmtDim(it.width) }
+}
 function fmtSize(h, w) {
   const a = fmtDim(h)
   const b = fmtDim(w)
@@ -283,15 +288,29 @@ const styles = `
   .gc-facts dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
   .gc-facts a { color: inherit; text-decoration: none; border-radius: 2px; }
   .gc-facts a:focus-visible { outline: 3px solid var(--stamp); outline-offset: 2px; }
-  .gc-rows { margin-top: 12px; border-top: 2px solid var(--print); align-self: start; }
+  /* The item rows: font-size here sizes them all (CardStage.jsx brings it down to fit). */
+  .gc-rows { margin-top: 12px; border-top: 2px solid var(--print); align-self: start; font-size: 20px; }
   .gc-items { margin: 0; padding: 0; list-style: none; }
-  .gc-items li { padding: 6px 0; border-bottom: 1px solid var(--rule); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-  .gc-items li.brand { padding: 8px 0 1px; border-bottom: 0; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .04em; }
+  .gc-items li { padding: 6px 0; border-bottom: 1px solid var(--rule); display: flex; align-items: baseline; }
+  .gc-items li.brand { justify-content: space-between; gap: 10px; padding: 8px 0 1px; border-bottom: 0; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .04em; }
   .gc-items li.brand span { color: var(--stamp); white-space: nowrap; }
-  .gc-items .spec { font-family: var(--gc-stencil); font-weight: 700; font-size: 20px; letter-spacing: .02em; line-height: 1.05; text-transform: uppercase; font-variant-numeric: tabular-nums;
-    flex: 1 1 auto; min-width: 0; white-space: nowrap; }
-  .gc-items .spec span span { white-space: nowrap; }
-  .gc-items .amt { font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .gc-items .c { font-family: var(--gc-stencil); font-weight: 700; letter-spacing: .02em; line-height: 1.05; text-transform: uppercase; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .gc-items .c-t { padding-right: .55em; }
+  .gc-items .c-x { padding: 0 .22em; }
+  .gc-items .c-q { padding-left: .55em; }
+  .gc-items .c:empty { padding: 0; }
+  .gc-items .amt { margin-left: auto; padding-left: 10px; font-weight: 800; font-size: .9em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* Columns: every row of the card on one grid (thickness, height, x, width, pieces,
+     room, amount), heights to the right of the x, widths to its left, a size in the
+     bill's own words centred over all three. */
+  @supports (grid-template-columns: subgrid) {
+    .gc-rows { display: grid; grid-template-columns: repeat(5, auto) minmax(0, 1fr) auto; }
+    .gc-items, .gc-items li, .gc-none { grid-column: 1 / -1; }
+    .gc-items, .gc-items li:not(.brand) { display: grid; grid-template-columns: subgrid; }
+    .gc-items .c-h { justify-self: end; }
+    .gc-items .c-s { grid-column: span 3; justify-self: center; }
+    .gc-items .amt { grid-column: -2; justify-self: end; margin-left: 0; }
+  }
   .gc-none { margin: 8px 0 0; font-size: 16px; color: var(--print-2); }
   .gc-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 10px; }
   .gc-seal { width: 36%; max-width: 116px; height: auto; aspect-ratio: 1; margin: 0 0 -6% -5%; pointer-events: none;
@@ -539,11 +558,20 @@ function CardView({ doc, number, token, claims, branded = false }) {
               ) : null}
               {g.items.map((it, j) => {
                 const qty = Number(it.qty) || 0
-                const spec = [fmtThickness(it.thickness), itemSize(it), qty ? `${qty} ${qty === 1 ? 'pc' : 'pcs'}` : ''].filter(Boolean)
+                const thick = fmtThickness(it.thickness)
+                const size = sizeParts(it)
+                const hasSize = Boolean(size.label || size.h || size.w)
+                const pcs = qty ? `${qty} ${qty === 1 ? 'pc' : 'pcs'}` : ''
                 return (
                   <li key={j}>
-                    {/* Each part kept whole: a line breaks between "81″ × 36″" and "4 pcs", never inside one. */}
-                    <span className="spec">{spec.length ? spec.map((s, k) => <span key={k}>{k ? ' · ' : ''}<span>{s}</span></span>) : '—'}</span>
+                    {/* One cell per part, so the ×, the widths and the pieces stand in columns down the card. */}
+                    <span className="c c-t">{thick || (hasSize || pcs ? '' : '—')}</span>
+                    {size.label ? <span className="c c-s">{size.label}</span> : <>
+                      <span className="c c-h">{size.h}</span>
+                      <span className="c c-x">{size.h && size.w ? '×' : ''}</span>
+                      <span className="c c-w">{size.w}</span>
+                    </>}
+                    <span className="c c-q">{pcs}</span>
                     {Number(it.amount) ? <span className="amt">{rupees(it.amount)}</span> : null}
                   </li>
                 )

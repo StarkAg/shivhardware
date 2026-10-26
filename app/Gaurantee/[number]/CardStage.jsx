@@ -32,9 +32,9 @@ function chime(ctx) {
 }
 
 // One line for the name and for each item: the type comes down until the longest fits
-// (every item row to the same size, so the column stays even) rather than breaking a
+// (every item row to the same size, so the columns stay even) rather than breaking a
 // size over two lines. Only past the smallest size that still reads does a line wrap.
-const FIT = [['.gc-front h1', 20], ['.gc-items .spec', 14]]
+const FIT = [['.gc-front h1', 20], ['.gc-rows', 14]]
 function fitLines(card) {
   for (const [sel, min] of FIT) {
     const els = [...card.querySelectorAll(sel)]
