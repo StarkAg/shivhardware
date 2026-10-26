@@ -5,7 +5,7 @@
 // a tap), then follows the hand: it tilts with the pointer or the phone, eased,
 // clamped, and comes back to rest. Without JavaScript, or with reduced motion, the
 // card simply lies face up; nothing waits on it.
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 const TURN_MS = 1350 // the turn (globals in page.jsx: .gc-card animation) and its landing
 
@@ -63,10 +63,24 @@ function weakDevice() {
     (n.deviceMemory <= 4 && n.hardwareConcurrency <= 4)
 }
 
+// An iPhone sends a page the phone's tilt only once the person allows it, and only a tap
+// can ask; there the card offers a button for it (below the card, until answered).
+// Chrome has the same request but sends the tilt without it, so only Apple's phones and
+// tablets ask (an iPad's Safari calls itself a Mac with a touch screen).
+function asksForTilt() {
+  const n = navigator
+  const apple = /iPhone|iPad|iPod/.test(n.userAgent) || (n.platform === 'MacIntel' && n.maxTouchPoints > 1)
+  return apple && typeof window.DeviceOrientationEvent?.requestPermission === 'function' &&
+    !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches && !weakDevice()
+}
+
 // The card lies square on the wood: a lean would slant its item columns, the pieces of
 // a lower row standing to the right of those above.
 export default function CardStage({ label, children }) {
   const card = useRef(null)
+  const refit = useRef(null)
+  const askTilt = useRef(null)
+  const [offerTilt, setOfferTilt] = useState(false)
 
   // One screen when the card allows it: on a phone the card takes the room left by the
   // years, the button and the terms, as near the card's own 54 x 86 shape as that room
@@ -76,6 +90,8 @@ export default function CardStage({ label, children }) {
     const el = card.current
     const door = el.closest('.gc-door')
     if (weakDevice()) el.closest('.gc-page')?.classList.add('gc-lite')
+    // Before the first paint, so the card is sized with the tilt button under it.
+    if (asksForTilt()) setOfferTilt(true)
     let width = 0
     const fit = () => {
       if (window.innerWidth === width) return
@@ -94,16 +110,21 @@ export default function CardStage({ label, children }) {
       el.style.minHeight = `${Math.max(el.offsetHeight, Math.min(room, w * 86 / 54))}px`
       door.style.minHeight = ''
     }
-    const refit = () => { width = 0; fit() }
+    const refitNow = () => { width = 0; fit() }
+    refit.current = refitNow
     fit()
-    document.fonts?.ready.then(refit)
+    document.fonts?.ready.then(refitNow)
     window.addEventListener('resize', fit)
-    window.addEventListener('orientationchange', refit)
+    window.addEventListener('orientationchange', refitNow)
     return () => {
       window.removeEventListener('resize', fit)
-      window.removeEventListener('orientationchange', refit)
+      window.removeEventListener('orientationchange', refitNow)
     }
   }, [])
+
+  // The tilt button takes room under the card: size the card again when it comes in
+  // (not when it goes, so the card does not jump once the question is answered).
+  useLayoutEffect(() => { if (offerTilt) refit.current?.() }, [offerTilt])
 
   useEffect(() => {
     const el = card.current
@@ -148,24 +169,29 @@ export default function CardStage({ label, children }) {
     el.addEventListener('animationend', turned)
     window.addEventListener('pointermove', onMove)
     document.addEventListener('pointerleave', onLeave)
-    // An iPhone sends the phone's tilt only once the person allows it, and only a tap can
-    // ask: the first tap on the card or the wood (not a button, link or the claim form).
-    const DOE = window.DeviceOrientationEvent
-    const ask = (e) => {
-      if (e.target.closest?.('button, a, input, textarea, select, label, .gc-sheet-backdrop')) return
+    // An iPhone asks from the tilt button, or from the first tap on the card or the wood
+    // (not another button, a link or the claim form).
+    const request = () => {
       document.removeEventListener('touchend', ask)
       document.removeEventListener('click', ask)
-      DOE.requestPermission()
+      askTilt.current = null
+      setOfferTilt(false)
+      window.DeviceOrientationEvent.requestPermission()
         .then((answer) => { if (answer === 'granted') window.addEventListener('deviceorientation', onTilt) })
         .catch(() => {})
     }
-    if (typeof DOE?.requestPermission === 'function') {
+    const ask = (e) => {
+      if (!e.target.closest?.('button, a, input, textarea, select, label, .gc-sheet-backdrop')) request()
+    }
+    if (asksForTilt()) {
+      askTilt.current = request
       document.addEventListener('touchend', ask)
       document.addEventListener('click', ask)
     } else {
       window.addEventListener('deviceorientation', onTilt)
     }
     return () => {
+      askTilt.current = null
       clearTimeout(landed)
       ctx?.close?.().catch(() => {})
       cancelAnimationFrame(raf)
@@ -184,6 +210,15 @@ export default function CardStage({ label, children }) {
         <div className="gc-face gc-back" aria-hidden="true" />
         {children}
       </article>
+      {offerTilt ? (
+        <button type="button" className="gc-tilt" onClick={() => askTilt.current?.()}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="8" y="3" width="8" height="18" rx="2" transform="rotate(-14 12 12)" />
+            <path d="M3.5 9.5A9 9 0 0 1 6.5 4.5M20.5 14.5a9 9 0 0 1-3 5" />
+          </svg>
+          Move the card with your phone
+        </button>
+      ) : null}
     </div>
   )
 }

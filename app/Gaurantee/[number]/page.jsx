@@ -263,6 +263,12 @@ const styles = `
   /* The card: 54 x 86, as large as the screen allows beside the years and the button;
      a card with many items grows taller rather than cramping them. */
   .gc-stage { display: grid; place-items: center; perspective: 1300px; padding: 4px 0 8px; }
+  /* On an iPhone, until answered: ask to let the card follow the phone (CardStage.jsx). */
+  .gc-tilt { margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 2px solid var(--ink); border-radius: 3px;
+    background: transparent; color: var(--ink); font: 700 15px var(--gc-text); text-transform: uppercase; letter-spacing: .06em; cursor: pointer; }
+  .gc-tilt svg { width: 20px; height: 20px; flex: none; }
+  .gc-tilt:focus-visible { outline: 3px solid var(--stamp); outline-offset: 3px; }
+  .gc-tilt:active { transform: scale(.97); }
   .gc-card { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); width: min(84vw, 330px, calc((100dvh - 390px) * 54 / 86)); min-width: min(250px, 100%); aspect-ratio: 54 / 86;
     transform-style: preserve-3d; transform: rotate(0deg) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); }
   .gc-card::before { content: ""; position: absolute; inset: 4% 3% -3% 5%; border-radius: 6%; background: rgba(60, 34, 8, .42); filter: blur(14px); transform: translateZ(-1px); }
