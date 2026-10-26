@@ -264,7 +264,7 @@ const styles = `
      a card with many items grows taller rather than cramping them. */
   .gc-stage { display: grid; place-items: center; perspective: 1300px; padding: 4px 0 8px; }
   .gc-card { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); width: min(84vw, 330px, calc((100dvh - 390px) * 54 / 86)); min-width: min(250px, 100%); aspect-ratio: 54 / 86;
-    transform-style: preserve-3d; transform: rotate(var(--lean, -2.5deg)) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); }
+    transform-style: preserve-3d; transform: rotate(0deg) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); }
   .gc-card::before { content: ""; position: absolute; inset: 4% 3% -3% 5%; border-radius: 6%; background: rgba(60, 34, 8, .42); filter: blur(14px); transform: translateZ(-1px); }
   /* No overflow: hidden on the faces: it would stop the card growing to fit its items
      (an aspect-ratio box only grows with content that is allowed to overflow). */
@@ -534,7 +534,7 @@ function CardView({ doc, number, token, claims, branded = false }) {
         </div>
       ) : <div />}
 
-      <CardStage label={`Guarantee card ${number}`} rows={items.length}>
+      <CardStage label={`Guarantee card ${number}`}>
         <div className="gc-face gc-front">
           <div className="gc-no">
             {branded

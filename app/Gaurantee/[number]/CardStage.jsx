@@ -63,9 +63,9 @@ function weakDevice() {
     (n.deviceMemory <= 4 && n.hardwareConcurrency <= 4)
 }
 
-// `rows`: the card's item rows. A card lies a little askew on the wood, less the longer
-// it is, or a full one (18 rows) would lean off the screen.
-export default function CardStage({ label, rows = 1, children }) {
+// The card lies square on the wood: a lean would slant its item columns, the pieces of
+// a lower row standing to the right of those above.
+export default function CardStage({ label, children }) {
   const card = useRef(null)
 
   // One screen when the card allows it: on a phone the card takes the room left by the
@@ -162,7 +162,7 @@ export default function CardStage({ label, rows = 1, children }) {
 
   return (
     <div className="gc-stage">
-      <article ref={card} className="gc-card" aria-label={label} style={{ '--lean': `${-Math.max(0.6, 2.5 - Math.max(0, rows - 3) * 0.25).toFixed(2)}deg` }}>
+      <article ref={card} className="gc-card" aria-label={label}>
         <div className="gc-face gc-back" aria-hidden="true" />
         {children}
       </article>
