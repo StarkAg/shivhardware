@@ -31,6 +31,29 @@ function chime(ctx) {
   }
 }
 
+// One line for the name and for each item: the type comes down until the longest fits
+// (every item row to the same size, so the column stays even) rather than breaking a
+// size over two lines. Only past the smallest size that still reads does a line wrap.
+const FIT = [['.gc-front h1', 20], ['.gc-items .spec', 14]]
+function fitLines(card) {
+  for (const [sel, min] of FIT) {
+    const els = [...card.querySelectorAll(sel)]
+    if (!els.length) continue
+    for (const el of els) el.style.fontSize = el.style.whiteSpace = ''
+    const over = () => els.filter((el) => el.scrollWidth > el.clientWidth)
+    let size = parseFloat(getComputedStyle(els[0]).fontSize)
+    const ratio = Math.min(...els.map((el) => el.clientWidth / Math.max(el.scrollWidth, 1)))
+    if (ratio >= 1) continue
+    size = Math.max(min, Math.floor(size * ratio * 2) / 2)
+    for (const el of els) el.style.fontSize = `${size}px`
+    while (size > min && over().length) {
+      size -= 0.5
+      for (const el of els) el.style.fontSize = `${size}px`
+    }
+    for (const el of over()) el.style.whiteSpace = 'normal'
+  }
+}
+
 // `rows`: the card's item rows. A card lies a little askew on the wood, less the longer
 // it is, or a full one (18 rows) would lean off the screen.
 export default function CardStage({ label, rows = 1, children }) {
@@ -48,14 +71,16 @@ export default function CardStage({ label, rows = 1, children }) {
       if (window.innerWidth === width) return
       width = window.innerWidth
       el.style.width = el.style.minHeight = el.style.aspectRatio = ''
-      if (width >= 860) return // a computer: the card sits beside the claim (page.jsx)
+      if (width >= 860) return fitLines(el) // a computer: the card sits beside the claim (page.jsx)
       const widest = Math.min(width * 0.84, 330)
       el.style.aspectRatio = 'auto'
       el.style.width = `${widest}px`
+      fitLines(el)
       door.style.minHeight = '0px'
       const room = window.innerHeight - (document.documentElement.scrollHeight - el.offsetHeight)
       const w = Math.max(Math.min(widest, room * 54 / 86), Math.min(250, widest))
       el.style.width = `${w}px`
+      if (w < widest) fitLines(el)
       el.style.minHeight = `${Math.max(el.offsetHeight, Math.min(room, w * 86 / 54))}px`
       door.style.minHeight = ''
     }

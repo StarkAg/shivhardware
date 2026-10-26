@@ -258,7 +258,7 @@ const styles = `
   /* The card: 54 x 86, as large as the screen allows beside the years and the button;
      a card with many items grows taller rather than cramping them. */
   .gc-stage { display: grid; place-items: center; perspective: 1300px; padding: 4px 0 8px; }
-  .gc-card { position: relative; display: grid; width: min(84vw, 330px, calc((100dvh - 390px) * 54 / 86)); min-width: min(250px, 100%); aspect-ratio: 54 / 86;
+  .gc-card { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); width: min(84vw, 330px, calc((100dvh - 390px) * 54 / 86)); min-width: min(250px, 100%); aspect-ratio: 54 / 86;
     transform-style: preserve-3d; transform: rotate(var(--lean, -2.5deg)) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); }
   .gc-card::before { content: ""; position: absolute; inset: 4% 3% -3% 5%; border-radius: 6%; background: rgba(60, 34, 8, .42); filter: blur(14px); transform: translateZ(-1px); }
   /* No overflow: hidden on the faces: it would stop the card growing to fit its items
@@ -266,7 +266,7 @@ const styles = `
   .gc-face { border-radius: 14px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
   .gc-back { position: absolute; inset: 0; transform: rotateY(180deg); background: var(--back); }
   .gc-back::before { content: ""; position: absolute; inset: 6%; border: 2px solid var(--gold); border-radius: 10px; }
-  .gc-front { position: relative; background: var(--pvc); color: var(--print); padding: 26px 24px 22px; display: grid; grid-template-rows: auto auto 1fr auto;
+  .gc-front { position: relative; background: var(--pvc); color: var(--print); padding: 26px 24px 22px; display: grid; grid-template-rows: auto auto 1fr auto; grid-template-columns: minmax(0, 1fr);
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .06); }
   /* PVC catches the light: a sheen that moves with the tilt. */
   .gc-front::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; mix-blend-mode: soft-light;
@@ -277,7 +277,7 @@ const styles = `
      (the shop's name in words is in the bar above). */
   .gc-maker { display: inline-flex; align-self: center; }
   .gc-maker img { width: 28px; height: 32px; object-fit: contain; }
-  .gc-front h1 { margin: 12px 0 0; font-size: clamp(25px, 7.6vw, 30px); line-height: .98; font-weight: 800; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; overflow-wrap: anywhere; }
+  .gc-front h1 { margin: 12px 0 0; font-size: clamp(25px, 7.6vw, 30px); line-height: .98; font-weight: 800; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; overflow-wrap: anywhere; white-space: nowrap; }
   .gc-facts { margin: 9px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 1px 12px; font-size: 17px; }
   .gc-facts dt { color: var(--print-2); font-weight: 500; }
   .gc-facts dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
@@ -288,7 +288,8 @@ const styles = `
   .gc-items li { padding: 6px 0; border-bottom: 1px solid var(--rule); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
   .gc-items li.brand { padding: 8px 0 1px; border-bottom: 0; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .04em; }
   .gc-items li.brand span { color: var(--stamp); white-space: nowrap; }
-  .gc-items .spec { font-family: var(--gc-stencil); font-weight: 700; font-size: 20px; letter-spacing: .02em; line-height: 1.05; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+  .gc-items .spec { font-family: var(--gc-stencil); font-weight: 700; font-size: 20px; letter-spacing: .02em; line-height: 1.05; text-transform: uppercase; font-variant-numeric: tabular-nums;
+    flex: 1 1 auto; min-width: 0; white-space: nowrap; }
   .gc-items .spec span span { white-space: nowrap; }
   .gc-items .amt { font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .gc-none { margin: 8px 0 0; font-size: 16px; color: var(--print-2); }
