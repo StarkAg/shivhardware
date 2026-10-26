@@ -54,12 +54,12 @@ function fitLines(card) {
   }
 }
 
-// A weak phone (little memory or few cores) or one saving data: the card keeps its
+// A weak phone (little memory, as Android's Chrome reports it) or one saving data: the card keeps its
 // turn but lies still after it, without the tilt and sheen that redraw it on every move
 // of the hand (page.jsx: .gc-lite).
 function weakDevice() {
   const n = navigator
-  return n.connection?.saveData === true || n.deviceMemory <= 2 || n.hardwareConcurrency <= 2 ||
+  return n.connection?.saveData === true || n.deviceMemory <= 2 ||
     (n.deviceMemory <= 4 && n.hardwareConcurrency <= 4)
 }
 
@@ -148,7 +148,23 @@ export default function CardStage({ label, children }) {
     el.addEventListener('animationend', turned)
     window.addEventListener('pointermove', onMove)
     document.addEventListener('pointerleave', onLeave)
-    window.addEventListener('deviceorientation', onTilt)
+    // An iPhone sends the phone's tilt only once the person allows it, and only a tap can
+    // ask: the first tap on the card or the wood (not a button, link or the claim form).
+    const DOE = window.DeviceOrientationEvent
+    const ask = (e) => {
+      if (e.target.closest?.('button, a, input, textarea, select, label, .gc-sheet-backdrop')) return
+      document.removeEventListener('touchend', ask)
+      document.removeEventListener('click', ask)
+      DOE.requestPermission()
+        .then((answer) => { if (answer === 'granted') window.addEventListener('deviceorientation', onTilt) })
+        .catch(() => {})
+    }
+    if (typeof DOE?.requestPermission === 'function') {
+      document.addEventListener('touchend', ask)
+      document.addEventListener('click', ask)
+    } else {
+      window.addEventListener('deviceorientation', onTilt)
+    }
     return () => {
       clearTimeout(landed)
       ctx?.close?.().catch(() => {})
@@ -156,6 +172,8 @@ export default function CardStage({ label, children }) {
       el.removeEventListener('animationend', turned)
       window.removeEventListener('pointermove', onMove)
       document.removeEventListener('pointerleave', onLeave)
+      document.removeEventListener('touchend', ask)
+      document.removeEventListener('click', ask)
       window.removeEventListener('deviceorientation', onTilt)
     }
   }, [])
