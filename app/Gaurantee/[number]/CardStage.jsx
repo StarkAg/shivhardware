@@ -31,7 +31,9 @@ function chime(ctx) {
   }
 }
 
-export default function CardStage({ label, children }) {
+// `rows`: the card's item rows. A card lies a little askew on the wood, less the longer
+// it is, or a full one (18 rows) would lean off the screen.
+export default function CardStage({ label, rows = 1, children }) {
   const card = useRef(null)
 
   useEffect(() => {
@@ -87,7 +89,7 @@ export default function CardStage({ label, children }) {
 
   return (
     <div className="gc-stage">
-      <article ref={card} className="gc-card" aria-label={label}>
+      <article ref={card} className="gc-card" aria-label={label} style={{ '--lean': `${-Math.max(0.6, 2.5 - Math.max(0, rows - 3) * 0.25).toFixed(2)}deg` }}>
         <div className="gc-face gc-back" aria-hidden="true" />
         {children}
       </article>

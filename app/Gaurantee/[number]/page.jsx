@@ -127,6 +127,20 @@ function Seal({ years, seed }) {
   return <img className="gc-seal" style={style} src={`/assets/guarantee/seal-${years}yr.png`} alt={`${years} year guarantee seal`} width="264" height="264" />
 }
 const rupees = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`
+// Rows of one brand (and one guarantee period) together, in the card's order: the brand
+// is said once, then one line per size. A card holds up to 18 rows (Shiv_Panel
+// print-server/template.mjs CARD_ROW_STEP_MM), so this keeps a full one readable.
+function groupByBrand(items) {
+  const groups = []
+  for (const it of items) {
+    const brand = String(it.brandName || '').trim()
+    const years = Number(it.guaranteeYears) || 0
+    const last = groups[groups.length - 1]
+    if (last && last.brand === brand && last.years === years) last.items.push(it)
+    else groups.push({ brand, years, items: [it] })
+  }
+  return groups
+}
 
 /**
  * A card shows Shiv Hardware's name and logo for its first 20 days, counted from
@@ -236,7 +250,7 @@ const styles = `
      a card with many items grows taller rather than cramping them. */
   .gc-stage { display: grid; place-items: center; perspective: 1300px; padding: 4px 0 8px; }
   .gc-card { position: relative; display: grid; width: min(84vw, 330px, calc((100dvh - 330px) * 54 / 86)); min-width: min(260px, 100%); aspect-ratio: 54 / 86;
-    transform-style: preserve-3d; transform: rotate(-2.5deg) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); }
+    transform-style: preserve-3d; transform: rotate(var(--lean, -2.5deg)) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); }
   .gc-card::before { content: ""; position: absolute; inset: 4% 3% -3% 5%; border-radius: 6%; background: rgba(60, 34, 8, .42); filter: blur(14px); transform: translateZ(-1px); }
   /* No overflow: hidden on the faces: it would stop the card growing to fit its items
      (an aspect-ratio box only grows with content that is allowed to overflow). */
@@ -250,18 +264,23 @@ const styles = `
     background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .8) calc(45% + var(--shine, 0%)), transparent 62%); }
   .gc-no { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .05em; }
   .gc-no b { color: var(--print); font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* A card in its first 20 days carries the shop's mark, printed on it like the name. */
+  .gc-maker { display: inline-flex; align-items: center; gap: 7px; color: var(--print); font-weight: 800; }
+  .gc-maker img { width: 26px; height: 29px; object-fit: contain; }
   .gc-front h1 { margin: 12px 0 0; font-size: clamp(25px, 7.6vw, 30px); line-height: .98; font-weight: 800; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; overflow-wrap: anywhere; }
   .gc-facts { margin: 9px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 1px 12px; font-size: 17px; }
   .gc-facts dt { color: var(--print-2); font-weight: 500; }
   .gc-facts dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
   .gc-facts a { color: inherit; text-decoration: none; border-radius: 2px; }
   .gc-facts a:focus-visible { outline: 3px solid var(--stamp); outline-offset: 2px; }
-  .gc-items { margin: 12px 0 0; padding: 0; list-style: none; border-top: 2px solid var(--print); align-self: start; }
-  .gc-items li { padding: 7px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 10px; }
+  .gc-rows { margin-top: 12px; border-top: 2px solid var(--print); align-self: start; }
+  .gc-items { margin: 0; padding: 0; list-style: none; }
+  .gc-items li { padding: 6px 0; border-bottom: 1px solid var(--rule); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .gc-items li.brand { padding: 8px 0 1px; border-bottom: 0; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .04em; }
+  .gc-items li.brand span { color: var(--stamp); white-space: nowrap; }
   .gc-items .spec { font-family: var(--gc-stencil); font-weight: 700; font-size: 20px; letter-spacing: .02em; line-height: 1.05; text-transform: uppercase; font-variant-numeric: tabular-nums; }
   .gc-items .amt { font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .gc-items .nm { grid-column: 1 / -1; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .04em; }
-  .gc-items .none { display: block; font-size: 16px; color: var(--print-2); border: 0; }
+  .gc-none { margin: 8px 0 0; font-size: 16px; color: var(--print-2); }
   .gc-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 10px; }
   .gc-seal { width: 36%; max-width: 116px; height: auto; aspect-ratio: 1; margin: 0 0 -6% -5%; pointer-events: none;
     translate: var(--dx) var(--dy); rotate: var(--turn); }
@@ -474,9 +493,14 @@ function CardView({ doc, number, token, claims, branded = false }) {
         </div>
       ) : <div />}
 
-      <CardStage label={`Guarantee card ${number}`}>
+      <CardStage label={`Guarantee card ${number}`} rows={items.length}>
         <div className="gc-face gc-front">
-          <div className="gc-no">Guarantee card <b>{number}</b></div>
+          <div className="gc-no">
+            {branded
+              ? <span className="gc-maker"><img src="/assets/guarantee/shiv-logo.png" alt="" width="154" height="174" />Shiv Hardware</span>
+              : 'Guarantee card'}
+            <b>{number}</b>
+          </div>
           <div>
             <h1>{cust.name || '—'}</h1>
             <dl className="gc-facts">
@@ -485,19 +509,25 @@ function CardView({ doc, number, token, claims, branded = false }) {
               {dateStr ? <><dt>Date</dt><dd>{dateStr}</dd></> : null}
             </dl>
           </div>
-          <ul className="gc-items">
-            {items.length ? items.map((it, i) => {
-              const qty = Number(it.qty) || 0
-              const spec = [fmtThickness(it.thickness), itemSize(it), qty ? `${qty} ${qty === 1 ? 'pc' : 'pcs'}` : ''].filter(Boolean).join(' · ')
-              return (
-                <li key={i}>
-                  <span className="spec">{spec || it.brandName || '—'}</span>
-                  {Number(it.amount) ? <span className="amt">{rupees(it.amount)}</span> : <span />}
-                  {spec && it.brandName ? <span className="nm">{it.brandName}</span> : null}
-                </li>
-              )
-            }) : <li className="none">No items listed on this card.</li>}
-          </ul>
+          <div className="gc-rows">
+          {items.length ? groupByBrand(items).map((g, i) => (
+            <ul className="gc-items" key={i}>
+              {g.brand || g.years !== maxYears ? (
+                <li className="brand">{g.brand}{g.years !== maxYears ? <span>{g.years ? `${g.years} ${g.years === 1 ? 'yr' : 'yrs'}` : 'No guarantee'}</span> : null}</li>
+              ) : null}
+              {g.items.map((it, j) => {
+                const qty = Number(it.qty) || 0
+                const spec = [fmtThickness(it.thickness), itemSize(it), qty ? `${qty} ${qty === 1 ? 'pc' : 'pcs'}` : ''].filter(Boolean).join(' · ')
+                return (
+                  <li key={j}>
+                    <span className="spec">{spec || '—'}</span>
+                    {Number(it.amount) ? <span className="amt">{rupees(it.amount)}</span> : null}
+                  </li>
+                )
+              })}
+            </ul>
+          )) : <p className="gc-none">No items listed on this card.</p>}
+          </div>
           <div className="gc-foot">
             <Seal years={maxYears} seed={number} />
             {total > 0 ? <div className="gc-sum"><small>Total</small><b>{rupees(total)}</b></div> : null}
@@ -533,7 +563,11 @@ function CardView({ doc, number, token, claims, branded = false }) {
             qty: Number(it.qty) || 0,
           }))}
         />
-        <p className="gc-terms">Borer and air bubbles are covered; termites are not. Valid for the years shown from the card&apos;s date. A replacement needs the original card and bill, after inspection.</p>
+        {/* A card made with its termite line switched off is guaranteed against termites too. */}
+        <p className="gc-terms">
+          {doc.termiteNote === false ? 'Borer, termites and air bubbles are covered.' : 'Borer and air bubbles are covered; termites are not.'}
+          {' '}Valid for the years shown from the card&apos;s date. A replacement needs the original card and bill, after inspection.
+        </p>
       </div>
     </main>
   )
