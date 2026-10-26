@@ -1,16 +1,23 @@
 // Public guarantee-card view. This is the target of the QR printed on Shiv
 // Hardware guarantee cards: https://www.shivhardware.store/Gaurantee/GC-2026-XXXX
-// It fetches the card from Convex and shows a clean, mobile-first summary
-// (customer, Aadhaar, phone, guaranteed items). Rendered per-request so newly
+// It fetches the card from Convex and shows it as the card itself, lying on the
+// plywood it guarantees: the years stencil-stamped on the wood, the customer's card
+// on top (customer, phone, guaranteed items, the seal). Rendered per-request so newly
 // printed cards resolve immediately, with no rebuild.
 
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
-import Verified from './Verified'
-import FitToScreen from './FitToScreen'
+import { Big_Shoulders, Big_Shoulders_Stencil } from 'next/font/google'
+import CardStage from './CardStage'
 import CardActions from './CardActions'
 
 export const dynamic = 'force-dynamic'
+
+// The door's own lettering: the condensed face of the size marks stamped on plywood,
+// its stencil cut for the years. Served from this site, not from Google. Next has no
+// metrics to size a fallback for these faces; the stacks below fall back to narrow ones.
+const text = Big_Shoulders({ subsets: ['latin'], axes: ['opsz'], display: 'swap', adjustFontFallback: false })
+const stencil = Big_Shoulders_Stencil({ subsets: ['latin'], axes: ['opsz'], display: 'swap', adjustFontFallback: false })
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || 'https://sensible-panther-176.convex.cloud'
 
@@ -66,7 +73,7 @@ const CLAIM_ISSUE = { borer: 'Borer', air: 'Air bubbles' }
 
 // Sizes are inches + eighths (soot). Eighths print as their fraction glyph: 44 4/8" -> 44½″.
 const EIGHTHS = ['', '⅛', '¼', '⅜', '½', '⅝', '¾', '⅞']
-const NBSP = ' '
+const NBSP = ' '
 function fmtDim(d) {
   if (!d || (!d.inches && !d.soot)) return ''
   const soot = Number(d.soot) || 0
@@ -88,9 +95,15 @@ function fmtThickness(t) {
   const m = s.match(/^(\d+(?:\.\d+)?)\s*mm$/i)
   return m ? `${m[1]}${NBSP}mm` : s
 }
+// Only the last four digits of the Aadhaar: the link can be shared, and a lost card read.
+function maskUid(uid) {
+  const digits = String(uid || '').replace(/\D/g, '')
+  return digits.length >= 4 ? `XXXX XXXX ${digits.slice(-4)}` : uid || 'N/A'
+}
 // The shop's wax seals (Shiv_Panel/assets/seals). One goes on the card by the total,
-// stamped at the angle a hand would leave it. The angle comes from the card number,
-// so a card looks the same every time it is opened.
+// pressed at the angle a hand would leave it. The angle comes from the card number,
+// so a card looks the same every time it is opened. A period with no seal of its own
+// has none: the years stamped on the wood already say it.
 const SEAL_YEARS = [1, 3, 7, 10, 20, 25]
 function stampPose(seed) {
   // -span/2 .. +span/2, from its own FNV-1a hash per value so they vary independently.
@@ -107,14 +120,11 @@ function stampPose(seed) {
     y: Math.round(pick('y', 8)),
   }
 }
-function Stamp({ years, seed }) {
-  if (!years) return null
+function Seal({ years, seed }) {
+  if (!SEAL_YEARS.includes(years)) return null
   const { turn, x, y } = stampPose(seed)
   const style = { '--turn': `${turn.toFixed(1)}deg`, '--dx': `${x}px`, '--dy': `${y}px` }
-  const label = `${years} year guarantee against borer`
-  return SEAL_YEARS.includes(years)
-    ? <img className="gc-stamp" style={style} src={`/assets/guarantee/seal-${years}yr.png`} alt={label} width="220" height="220" />
-    : <span className="gc-stamp gc-stamp-ink" style={style} role="img" aria-label={label}><b>{years}</b>{years === 1 ? 'YEAR' : 'YEARS'}<small>GUARANTEE</small></span>
+  return <img className="gc-seal" style={style} src={`/assets/guarantee/seal-${years}yr.png`} alt={`${years} year guarantee seal`} width="264" height="264" />
 }
 const rupees = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`
 
@@ -169,256 +179,224 @@ export async function generateMetadata({ params, searchParams }) {
   }
 }
 
+// The wood is the page in light and dark alike: it is the material, not a theme.
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  colorScheme: 'light dark',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#e8e5df' },
-    { media: '(prefers-color-scheme: dark)', color: '#12110f' },
-  ],
+  colorScheme: 'light',
+  themeColor: '#dcb67c',
 }
 
 const styles = `
-  /* The attendance app's palette. Also set on the sheet layer, which is portalled to
-     <body> outside .gc-page and would otherwise miss every colour. */
+  /* Tokens. Also set on the sheet layer, which is portalled to <body> outside .gc-page. */
   .gc-page, .gc-sheet-backdrop {
-    --bg: #e8e5df; --card: #f3f0ea; --card2: #ede9e1; --fg: #1c1917; --muted: #78716c;
-    --line: rgba(28, 25, 23, .12); --brass: #b9924b; --brass-ink: #201804; --brass-text: #7d5f22;
-    --red: #9f1d20; --lift: 0 10px 30px rgba(28, 25, 23, .14);
-    --ok: #146239; --ok-bg: #e3f1e8; --bad: #9f1d20; --bad-bg: #f6e3e3;
+    --veneer: #e2c08a; --veneer-2: #d2a96b; --grain: rgba(120, 78, 30, .16);
+    --ink: #1a120a; --ink-2: #4a3520; --stamp: #8e1c15;
+    --pvc: #fbfaf7; --print: #17140f; --print-2: #5d5348; --rule: #e2dccf;
+    --back: #0d0d0d; --gold: #c9a24f;
+    --gc-text: ${text.style.fontFamily}, "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+    --gc-stencil: ${stencil.style.fontFamily}, "Arial Narrow", "Roboto Condensed", sans-serif;
+    --gc-ui: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    /* The claim form's names for the same colours. */
+    --bg: #f6eddc; --card: #fffdf8; --card2: #efe3cc; --fg: var(--ink); --muted: #5b4630;
+    --line: rgba(26, 18, 10, .18); --brass: var(--ink); --brass-ink: #f2dcae; --brass-text: var(--stamp);
+    --red: var(--stamp); --lift: 0 10px 28px rgba(60, 34, 8, .22);
+    --ok: #146239; --ok-bg: #dcefe2; --bad: var(--stamp); --bad-bg: #f6e1dc;
     color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark) {
-    .gc-page, .gc-sheet-backdrop {
-      --bg: #12110f; --card: #1a1815; --card2: #211e1a; --fg: #eae7e1; --muted: #a8a29e;
-      --line: rgba(255, 255, 255, .10); --brass: #c9a45c; --brass-ink: #1a1204; --brass-text: #c9a45c;
-      --red: #d3595c; --lift: 0 10px 34px rgba(0, 0, 0, .44);
-      --ok: #4cb782; --ok-bg: rgba(76, 183, 130, .16); --bad: #d3595c; --bad-bg: rgba(211, 89, 92, .16);
-      color-scheme: dark;
-    }
-    .gc-page { background: linear-gradient(180deg, #12110f 0%, #1a1815 54%, #100f0e 100%); }
   }
   .gc-page, .gc-sheet-backdrop { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
   .gc-page button, .gc-page a, .gc-sheet-backdrop button, .gc-sheet-backdrop label { touch-action: manipulation; }
-  .gc-page {
-    overflow-x: clip;
-    min-height: 100vh; min-height: 100dvh; background: var(--bg); color: var(--fg);
-    font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* The plywood: rotary-cut veneer, its long wavy grain drawn in CSS (no image to load). */
+  body:has(.gc-page) { margin: 0; background: #dcb67c; }
+  .gc-page { min-height: 100vh; min-height: 100dvh; overflow-x: clip; color: var(--ink); font-family: var(--gc-text);
+    font-optical-sizing: auto;
+    background:
+      repeating-radial-gradient(ellipse 260% 26% at 30% -40%, transparent 0 13px, var(--grain) 14px 15px, transparent 16px 31px),
+      repeating-linear-gradient(176deg, transparent 0 7px, rgba(120, 78, 30, .06) 8px 9px, transparent 10px 23px),
+      linear-gradient(180deg, var(--veneer) 0%, var(--veneer-2) 100%); }
+  .gc-door { max-width: 460px; min-height: 100vh; min-height: 100dvh; margin: 0 auto; display: grid; grid-template-rows: auto auto 1fr auto; gap: 10px;
+    padding: calc(14px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left)); }
+
+  .gc-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 800; font-size: 16px; letter-spacing: .06em; text-transform: uppercase; }
+  .gc-who { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+  .gc-who img { width: 30px; height: 34px; flex: none; object-fit: contain; background: #fff; border-radius: 6px; padding: 3px; }
+  .gc-who svg { width: 22px; height: 22px; flex: none; }
+  .gc-ok { color: var(--stamp); display: inline-flex; gap: 5px; align-items: center; white-space: nowrap; }
+  .gc-ok svg { width: 18px; height: 18px; }
+
+  /* The years, stamped on the board in stencil ink. */
+  .gc-years { display: flex; align-items: flex-end; gap: 10px; margin-top: 8px; color: var(--stamp); }
+  .gc-years .n { font-family: var(--gc-stencil); font-weight: 900; font-size: clamp(92px, 30vw, 132px); line-height: .78; letter-spacing: -.02em; }
+  .gc-years .w { font-family: var(--gc-stencil); font-weight: 700; font-size: clamp(28px, 9vw, 38px); line-height: .9; text-transform: uppercase; padding-bottom: 2px; }
+  .gc-years .w small { display: block; margin-top: 5px; font-family: var(--gc-text); font-weight: 700; font-size: 16px; letter-spacing: .03em; text-transform: none; color: var(--ink-2); }
+
+  /* The card: 54 x 86, as large as the screen allows beside the years and the button;
+     a card with many items grows taller rather than cramping them. */
+  .gc-stage { display: grid; place-items: center; perspective: 1300px; padding: 4px 0 8px; }
+  .gc-card { position: relative; display: grid; width: min(84vw, 330px, calc((100dvh - 330px) * 54 / 86)); min-width: min(260px, 100%); aspect-ratio: 54 / 86;
+    transform-style: preserve-3d; transform: rotate(-2.5deg) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); }
+  .gc-card::before { content: ""; position: absolute; inset: 4% 3% -3% 5%; border-radius: 6%; background: rgba(60, 34, 8, .42); filter: blur(14px); transform: translateZ(-1px); }
+  /* No overflow: hidden on the faces: it would stop the card growing to fit its items
+     (an aspect-ratio box only grows with content that is allowed to overflow). */
+  .gc-face { border-radius: 14px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .gc-back { position: absolute; inset: 0; transform: rotateY(180deg); background: var(--back); }
+  .gc-back::before { content: ""; position: absolute; inset: 6%; border: 2px solid var(--gold); border-radius: 10px; }
+  .gc-front { position: relative; background: var(--pvc); color: var(--print); padding: 26px 24px 22px; display: grid; grid-template-rows: auto auto 1fr auto;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .06); }
+  /* PVC catches the light: a sheen that moves with the tilt. */
+  .gc-front::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; mix-blend-mode: soft-light;
+    background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .8) calc(45% + var(--shine, 0%)), transparent 62%); }
+  .gc-no { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .05em; }
+  .gc-no b { color: var(--print); font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .gc-front h1 { margin: 12px 0 0; font-size: clamp(25px, 7.6vw, 30px); line-height: .98; font-weight: 800; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; overflow-wrap: anywhere; }
+  .gc-facts { margin: 9px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 1px 12px; font-size: 17px; }
+  .gc-facts dt { color: var(--print-2); font-weight: 500; }
+  .gc-facts dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+  .gc-facts a { color: inherit; text-decoration: none; border-radius: 2px; }
+  .gc-facts a:focus-visible { outline: 3px solid var(--stamp); outline-offset: 2px; }
+  .gc-items { margin: 12px 0 0; padding: 0; list-style: none; border-top: 2px solid var(--print); align-self: start; }
+  .gc-items li { padding: 7px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 10px; }
+  .gc-items .spec { font-family: var(--gc-stencil); font-weight: 700; font-size: 20px; letter-spacing: .02em; line-height: 1.05; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+  .gc-items .amt { font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .gc-items .nm { grid-column: 1 / -1; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .04em; }
+  .gc-items .none { display: block; font-size: 16px; color: var(--print-2); border: 0; }
+  .gc-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 10px; }
+  .gc-seal { width: 36%; max-width: 116px; height: auto; aspect-ratio: 1; margin: 0 0 -6% -5%; pointer-events: none;
+    translate: var(--dx) var(--dy); rotate: var(--turn); }
+  .gc-sum { margin-left: auto; text-align: right; }
+  .gc-sum small { display: block; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .05em; }
+  .gc-sum b { font-size: clamp(29px, 9vw, 34px); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+
+  /* The opening, CSS from the first paint: the card lands face down and turns over,
+     the years ink onto the wood, the seal is pressed. Content is all there without it. */
+  @media (prefers-reduced-motion: no-preference) {
+    .gc-card:not(.is-turned) { animation: gc-turn 1.2s cubic-bezier(.2, .8, .2, 1) .15s both; }
+    .gc-years > * { animation: gc-ink .3s steps(3, end) both; }
+    .gc-years .n { animation-delay: 1.1s; }
+    .gc-years .w { animation-delay: 1.25s; }
+    .gc-seal { animation: gc-press .45s cubic-bezier(.3, 1.5, .5, 1) 1.4s both; }
   }
-  body:has(.gc-page) { margin: 0; background: #e8e5df; }
-  @media (prefers-color-scheme: dark) { body:has(.gc-page) { background: #12110f; } }
-  .gc-wrap { max-width: 620px; margin: 0 auto; padding: 0 calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left)); }
+  @keyframes gc-turn { from { transform: rotate(-9deg) translateY(-18px) rotateY(-180deg) rotateX(8deg); } }
+  @keyframes gc-ink { from { opacity: 0; transform: scale(1.1); filter: blur(1.5px); } to { opacity: 1; transform: none; filter: none; } }
+  @keyframes gc-press { from { opacity: 0; scale: 1.7; rotate: calc(var(--turn) - 12deg); } to { opacity: 1; scale: 1; rotate: var(--turn); } }
 
-  .gc-head { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; margin: 0 -12px 10px;
-    padding: calc(9px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 9px calc(14px + env(safe-area-inset-left));
-    background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--line); }
-  .gc-logo { width: 36px; height: 36px; flex: none; border-radius: 10px; background: var(--brass); color: var(--brass-ink); padding: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
-  .gc-logo svg { width: 100%; height: 100%; display: block; }
-  .gc-logo.is-brand { background: #fff; padding: 4px; }
-  .gc-logo img, .gc-logo-tile img { width: 100%; height: 100%; object-fit: contain; display: block; }
-  .gc-brand { flex: 1; min-width: 0; font-size: 17px; font-weight: 800; line-height: 1.1; letter-spacing: .01em; }
-  .gc-brand small { display: block; margin-top: 3px; font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .14em; }
-  .gc-head-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-  .gc-tag { color: var(--fg); font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; }
-  .gc-verified { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 6px; border-radius: 999px;
-    background: var(--brass); color: var(--brass-ink); font-size: 11px; font-weight: 800; letter-spacing: .02em; }
-  .gc-verified svg { width: 12px; height: 12px; }
+  /* Claims on this card, stamped on the wood like the items. */
+  .gc-claims { display: grid; gap: 8px; }
+  .gc-claims h2 { margin: 4px 0 0; font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+  .gc-claim { padding: 9px 12px; border: 2.5px solid var(--ink); border-radius: 3px; }
+  .gc-claim-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .gc-claim-ref { font-family: var(--gc-stencil); font-weight: 700; font-size: 21px; letter-spacing: .03em; }
+  .gc-claim-sub { margin-top: 2px; font-size: 16px; font-weight: 500; color: var(--ink-2); }
+  .gc-claim-note { margin-top: 5px; font-size: 16px; font-weight: 500; }
+  .gc-status { font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+  .gc-status.is-approved, .gc-status.is-replaced { color: var(--ok); }
+  .gc-status.is-rejected { color: var(--stamp); }
 
-  .gc-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--lift); padding: 11px 14px; margin-bottom: 10px; }
-  .gc-card h2 { margin: 0 0 4px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .14em; color: var(--brass-text); font-weight: 800; }
-  .gc-name { font-size: 18px; font-weight: 800; line-height: 1.2; }
-  .gc-facts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
-  .gc-fact .k { display: block; font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
-  .gc-fact .v { display: block; margin-top: 2px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .gc-fact .v a { color: inherit; text-decoration: none; }
-
-  .gc-item { padding: 7px 0; border-top: 1px solid var(--line); }
-  .gc-card h2 + .gc-item { border-top: 0; padding-top: 3px; }
-  .gc-item-body { min-width: 0; }
-  .gc-item-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-  .gc-item-top .brand { font-weight: 700; font-size: 14.5px; line-height: 1.25; min-width: 0; overflow-wrap: anywhere; }
-  .gc-amt { font-weight: 800; font-size: 14.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .gc-item-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; margin-top: 2px; }
-  .gc-spec { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: .01em; }
-  .gc-spec .dot { opacity: .55; margin: 0 5px; }
-  .gc-qty { margin-left: auto; font-size: 11.5px; font-weight: 700; color: var(--fg); background: var(--card2); border: 1px solid var(--line);
-    padding: 1px 8px; border-radius: 999px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-
-  /* Total block: the seal pressed on its left, the sum on its right, so it sits by the
-     total without covering anything and without adding a strip of its own. */
-  .gc-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; padding-top: 6px; border-top: 2px solid var(--fg); }
-  .gc-total-sum { margin-left: auto; text-align: right; font-variant-numeric: tabular-nums; }
-  .gc-total-sum span { display: block; font-size: 10.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .14em; }
-  .gc-total-sum b { display: block; margin-top: 1px; font-size: 21px; font-weight: 800; letter-spacing: -.01em; }
-  /* The shadow is baked into the seal images: a CSS drop-shadow would be repainted on
-     every frame of the stamp animation. */
-  .gc-stamp { flex: none; width: 80px; height: 80px; margin: 0 0 0 2px; object-fit: contain; pointer-events: none;
-    transform: translate(var(--dx), var(--dy)) rotate(var(--turn)); }
-  .gc-stamp-ink { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%;
-    border: 3px double var(--red); color: var(--red); font-weight: 800; font-size: 10px; letter-spacing: .12em; line-height: 1.1; }
-  .gc-stamp-ink b { font-size: 24px; letter-spacing: 0; }
-  .gc-stamp-ink small { font-size: 8px; letter-spacing: .14em; }
-  /* Lands just as the verified screen finishes clearing: drops in fast, presses a touch
-     past flat, settles. Transform and opacity only, on its own layer. */
-  html.gc-revealed .gc-stamp { will-change: transform, opacity; animation: gc-thump 440ms 180ms both; }
-  @keyframes gc-thump {
-    0% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(calc(var(--turn) - 10deg)) scale(1.7);
-      animation-timing-function: cubic-bezier(.55, 0, 1, .45); }
-    52% { opacity: 1; transform: translate(var(--dx), var(--dy)) rotate(var(--turn)) scale(.93);
-      animation-timing-function: cubic-bezier(0, .55, .45, 1); }
-    100% { opacity: 1; transform: translate(var(--dx), var(--dy)) rotate(var(--turn)) scale(1); }
-  }
-  /* Claims on this card */
-  .gc-claims h2 { margin-bottom: 6px; }
-  .gc-claim { padding: 7px 0; border-top: 1px solid var(--line); }
-  .gc-claims h2 + .gc-claim { border-top: 0; padding-top: 0; }
-  .gc-claim-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .gc-claim-ref { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; font-weight: 700; }
-  .gc-claim-sub { margin-top: 2px; font-size: 12.5px; color: var(--muted); }
-  .gc-claim-note { margin-top: 5px; padding: 6px 9px; border-radius: 8px; background: var(--card2); font-size: 13px; }
-  .gc-status { font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 999px; white-space: nowrap; background: var(--card2); border: 1px solid var(--line); }
-  .gc-status.is-approved, .gc-status.is-replaced { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
-  .gc-status.is-rejected { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
-  .gc-status.is-reviewing { background: color-mix(in srgb, var(--brass) 22%, transparent); color: var(--brass-text); border-color: transparent; }
-
-  /* Short terms, in small print */
-  .gc-terms-short { margin: 0 2px 8px; font-size: 10.5px; line-height: 1.45; color: var(--muted); font-weight: 400; }
-  .gc-terms-short > span { display: block; margin-bottom: 2px; font-size: 9.5px; text-transform: uppercase; letter-spacing: .14em; }
-  .gc-terms-short ul { margin: 0; padding-left: 13px; }
-  .gc-terms-short li::marker { font-size: 9px; }
-
-  /* Buttons */
-  .gc-claim-btn { width: 100%; min-height: 44px; }
-  .gc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 14px; border-radius: 12px;
-    border: 1px solid var(--line); background: var(--card); color: var(--fg); font: 700 14px Inter, system-ui, sans-serif; text-decoration: none; cursor: pointer; }
+  .gc-act { display: grid; gap: 8px; }
+  /* A transparent border: in Windows High Contrast, where backgrounds go, it keeps the button's shape. */
+  .gc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; padding: 0 16px; border-radius: 3px; border: 2px solid transparent;
+    background: var(--ink); color: var(--brass-ink); font: 800 20px var(--gc-text); text-transform: uppercase; letter-spacing: .08em; cursor: pointer; }
+  .gc-btn:focus-visible, .gc-submit:focus-visible, .gc-sheet-x:focus-visible { outline: 3px solid var(--stamp); outline-offset: 3px; }
   .gc-btn, .gc-submit, .gc-issue, .gc-photo-add { transition: transform 120ms ease, filter 120ms ease; }
-  .gc-btn:active, .gc-submit:active, .gc-issue:active, .gc-photo-add:active { transform: scale(.97); filter: brightness(.96); }
-  .gc-btn.is-primary { background: var(--brass); border-color: transparent; color: var(--brass-ink); box-shadow: var(--lift); }
+  .gc-btn:active, .gc-submit:active, .gc-issue:active, .gc-photo-add:active { transform: scale(.97); filter: brightness(.9); }
+  .gc-terms { margin: 0; font-size: 16px; line-height: 1.35; color: var(--ink-2); font-weight: 500; text-align: center; text-wrap: pretty; }
 
-  /* Sheets: bottom sheet on a phone, dialog on a wider screen */
+  /* A computer: the card on the left, the years and the claim beside it, all in one
+     screen even on a short laptop. */
+  @media (min-width: 860px) {
+    .gc-door { max-width: 880px; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: 56px; align-content: center; }
+    .gc-top { grid-column: 1 / -1; }
+    .gc-stage { grid-column: 1; grid-row: 2 / 4; align-self: center; }
+    .gc-years { grid-column: 2; grid-row: 2; align-self: end; }
+    .gc-act { grid-column: 2; grid-row: 3; align-self: start; padding-top: 18px; }
+    .gc-card { width: min(380px, calc((100dvh - 110px) * 54 / 86)); }
+    .gc-terms { text-align: left; }
+  }
+
+  .gc-miss { align-self: center; display: grid; gap: 8px; padding: 24px 0; }
+  .gc-miss h1 { margin: 0; font-family: var(--gc-stencil); font-weight: 900; font-size: 64px; line-height: .85; color: var(--stamp); text-transform: uppercase; }
+  .gc-miss p { margin: 0; font-size: 19px; line-height: 1.3; font-weight: 500; }
+
+  /* Sheets: the whole screen on a phone (a bottom sheet fights the keyboard), a dialog wider. */
   .gc-sheet-backdrop { position: fixed; inset: 0; z-index: 60; display: flex; align-items: flex-end; justify-content: center;
-    background: rgba(18, 17, 15, .48); animation: gc-fade 180ms ease-out both; }
-  /* Phones: the sheet is the whole screen (a bottom sheet fights the keyboard). */
+    background: rgba(26, 18, 10, .5); animation: gc-fade 180ms ease-out both; }
   .gc-sheet { width: 100%; height: 100%; height: 100dvh; display: flex; flex-direction: column; background: var(--bg); color: var(--fg);
-    animation: gc-up 240ms cubic-bezier(.2,.9,.3,1) both; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+    animation: gc-up 240ms cubic-bezier(.2, .9, .3, 1) both; font-family: var(--gc-ui); }
   @media (min-width: 640px) {
     .gc-sheet-backdrop { align-items: center; padding: 24px; }
-    .gc-sheet { max-width: 560px; height: auto; max-height: 88vh; border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+    .gc-sheet { max-width: 560px; height: auto; max-height: 88vh; border-radius: 6px; box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
   }
-  .gc-sheet-head { flex: none; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line);
+  .gc-sheet-head { flex: none; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--ink);
     padding: calc(10px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 10px calc(16px + env(safe-area-inset-left)); }
-  .gc-sheet-head h3 { margin: 0; font-size: 17px; font-weight: 800; }
-  .gc-sheet-x { width: 44px; height: 44px; margin-right: -6px; border-radius: 10px; border: 0; background: var(--card2, #ede9e1); color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .gc-sheet-head h3 { margin: 0; font: 800 22px var(--gc-text); text-transform: uppercase; letter-spacing: .05em; }
+  .gc-sheet-x { width: 44px; height: 44px; margin-right: -6px; border-radius: 6px; border: 0; background: var(--card2); color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .gc-sheet-x svg, .gc-photo button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
   .gc-sheet-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
     padding: 14px calc(16px + env(safe-area-inset-right)) 0 calc(16px + env(safe-area-inset-left)); }
-  .gc-done { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
-  /* Submit stays at the bottom of the screen while the form scrolls. */
   .gc-form-foot { position: sticky; bottom: 0; z-index: 2; display: grid; gap: 8px; margin: 0 calc(-16px - env(safe-area-inset-right)) 0 calc(-16px - env(safe-area-inset-left));
     padding: 10px calc(16px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
-    background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); }
+    background: var(--bg); border-top: 1px solid var(--line); }
   @keyframes gc-fade { from { opacity: 0 } }
   @keyframes gc-up { from { transform: translateY(24px); opacity: 0 } }
 
-
-  /* Claim form */
+  /* Claim form: typed text in the phone's own face, which reads best in a form. */
   .gc-form { display: grid; gap: 14px; }
-  .gc-form-lead { margin: 0; font-size: 13px; color: var(--muted, #78716c); }
-  .gc-form fieldset { margin: 0; padding: 12px 14px 14px; border: 1px solid var(--line, rgba(28,25,23,.12)); border-radius: 14px; background: var(--card, #f3f0ea); display: grid; gap: 10px; min-width: 0; }
-  .gc-form legend { display: flex; align-items: center; gap: 8px; padding: 0 6px; margin-left: -6px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; color: var(--brass-text, #7d5f22); }
-  .gc-form legend span { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--brass, #b9924b); color: var(--brass-ink, #201804); font-size: 11px; letter-spacing: 0; }
+  .gc-form-lead { margin: 0; font-size: 14px; color: var(--muted); }
+  .gc-form fieldset { margin: 0; padding: 12px 14px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); display: grid; gap: 10px; min-width: 0; }
+  .gc-form legend { display: flex; align-items: center; gap: 8px; padding: 0 6px; margin-left: -6px; font: 800 17px var(--gc-text); text-transform: uppercase; letter-spacing: .06em; color: var(--brass-text); }
+  .gc-form legend span { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--ink); color: var(--brass-ink); font-size: 13px; letter-spacing: 0; }
   .gc-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 400px) { .gc-row2 { grid-template-columns: 1fr; } }
   .gc-field { display: grid; gap: 5px; min-width: 0; position: relative; }
-  .gc-field > span { font-size: 12px; font-weight: 700; color: var(--muted, #78716c); }
-  .gc-field input, .gc-field select, .gc-field textarea { width: 100%; box-sizing: border-box; min-height: 44px; padding: 10px 12px; border-radius: 10px;
-    border: 1px solid var(--line, rgba(28,25,23,.12)); background: var(--bg, #e8e5df); color: inherit; font: 500 16px Inter, system-ui, sans-serif; outline: none; resize: vertical; }
-  .gc-field textarea { min-height: 0; line-height: 1.4; }
+  .gc-field > span { font-size: 13px; font-weight: 700; color: var(--muted); }
   /* 16px or more: below that, iPhone Safari zooms the page in when a box is tapped. */
-  .gc-field input:focus, .gc-field select:focus, .gc-field textarea:focus { border-color: var(--brass, #b9924b); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brass, #b9924b) 28%, transparent); }
-  .gc-field.has-error input, .gc-field.has-error select, .gc-field.has-error textarea { border-color: var(--red, #9f1d20); }
-  .gc-err { font-size: 12px; font-weight: 600; color: var(--red, #9f1d20); }
-  .gc-note { font-size: 12px; color: var(--muted, #78716c); }
-  .gc-count { position: absolute; right: 10px; top: 0; font-size: 11px; color: var(--muted, #78716c); }
+  .gc-field input, .gc-field select, .gc-field textarea { width: 100%; box-sizing: border-box; min-height: 46px; padding: 10px 12px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--bg); color: inherit; font: 500 16px var(--gc-ui); outline: none; resize: vertical; }
+  .gc-field textarea { min-height: 0; line-height: 1.4; }
+  .gc-field input:focus, .gc-field select:focus, .gc-field textarea:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(26, 18, 10, .18); }
+  .gc-field.has-error input, .gc-field.has-error select, .gc-field.has-error textarea { border-color: var(--red); }
+  .gc-err { font-size: 13px; font-weight: 600; color: var(--red); }
+  .gc-note { font-size: 13px; color: var(--muted); }
+  .gc-count { position: absolute; right: 10px; top: 0; font-size: 12px; color: var(--muted); }
   .gc-issues { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .gc-issue { display: grid; gap: 3px; text-align: left; padding: 10px; border-radius: 12px; border: 1.5px solid var(--line, rgba(28,25,23,.12)); background: var(--bg, #e8e5df);
-    color: inherit; font: inherit; cursor: pointer; }
-  .gc-issue b { font-size: 14px; }
-  .gc-issue small { font-size: 11px; line-height: 1.3; color: var(--muted, #78716c); }
-  .gc-issue.is-on { border-color: var(--brass, #b9924b); background: color-mix(in srgb, var(--brass, #b9924b) 16%, var(--bg, #e8e5df)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brass, #b9924b) 22%, transparent); }
-  .gc-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .gc-proofs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .gc-issue { display: grid; gap: 3px; text-align: left; padding: 10px; border-radius: 6px; border: 1.5px solid var(--line); background: var(--bg); color: inherit; font: inherit; cursor: pointer; }
+  .gc-issue b { font-size: 15px; }
+  .gc-issue small { font-size: 12.5px; line-height: 1.3; color: var(--muted); }
+  .gc-issue.is-on { border-color: var(--ink); background: var(--card2); box-shadow: 0 0 0 2px var(--ink); }
+  .gc-photos, .gc-proofs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .gc-proof { display: grid; align-content: start; gap: 3px; min-width: 0; }
-  .gc-proof > b { margin-top: 3px; font-size: 12.5px; line-height: 1.2; }
-  .gc-proof > small { font-size: 10.5px; line-height: 1.3; color: var(--muted); }
+  .gc-proof > b { margin-top: 3px; font-size: 13px; line-height: 1.2; }
+  .gc-proof > small { font-size: 12px; line-height: 1.3; color: var(--muted); }
   .gc-proof.has-error .gc-photo-add { border-color: var(--red); color: var(--red); }
-  .gc-photo, .gc-photo-add { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; }
+  .gc-photo, .gc-photo-add { position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; }
   .gc-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .gc-photo button { position: absolute; top: 4px; right: 4px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-  .gc-photo-add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 1.5px dashed var(--line, rgba(28,25,23,.25));
-    background: var(--bg, #e8e5df); color: var(--muted, #78716c); font: 600 12px Inter, system-ui, sans-serif; cursor: pointer; }
+  .gc-photo button { position: absolute; top: 4px; right: 4px; width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(0, 0, 0, .62); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .gc-photo-add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 1.5px dashed rgba(26, 18, 10, .35);
+    background: var(--bg); color: var(--muted); font: 600 13px var(--gc-ui); cursor: pointer; }
   .gc-photo-add svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
-  .gc-photos.has-error .gc-photo-add { border-color: var(--red, #9f1d20); }
-  .gc-check { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line, rgba(28,25,23,.12)); background: var(--card, #f3f0ea); font-size: 13.5px; line-height: 1.45; cursor: pointer; }
-  .gc-check input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; accent-color: var(--brass, #b9924b); }
-  .gc-check.has-error { border-color: var(--red, #9f1d20); }
-  .gc-fail { padding: 10px 12px; border-radius: 10px; background: var(--bad-bg); color: var(--bad); font-size: 13.5px; font-weight: 600; }
-  .gc-submit { min-height: 50px; border: 0; border-radius: 12px; background: var(--brass, #b9924b); color: var(--brass-ink, #201804); font: 800 15px Inter, system-ui, sans-serif;
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: var(--lift); }
+  .gc-photos.has-error .gc-photo-add { border-color: var(--red); }
+  .gc-check { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); font-size: 14px; line-height: 1.45; cursor: pointer; }
+  .gc-check input { width: 22px; height: 22px; margin: 1px 0 0; flex: none; accent-color: var(--ink); }
+  .gc-check.has-error { border-color: var(--red); }
+  .gc-fail { padding: 10px 12px; border-radius: 6px; background: var(--bad-bg); color: var(--bad); font-size: 14px; font-weight: 600; }
+  .gc-submit { min-height: 54px; border: 2px solid transparent; border-radius: 3px; background: var(--ink); color: var(--brass-ink); font: 800 19px var(--gc-text); text-transform: uppercase; letter-spacing: .08em;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; }
   .gc-submit:disabled { opacity: .75; cursor: progress; }
   .gc-spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: gc-rot 700ms linear infinite; }
   @keyframes gc-rot { to { transform: rotate(360deg) } }
 
   /* Submitted */
-  .gc-done { display: grid; justify-items: center; gap: 10px; text-align: center; padding: 6px 0 2px; }
+  .gc-done { display: grid; justify-items: center; gap: 10px; text-align: center; padding: 6px 0 calc(18px + env(safe-area-inset-bottom)); }
   .gc-done-tick { width: 64px; height: 64px; }
-  .gc-done-tick circle { fill: var(--brass, #b9924b); }
-  .gc-done-tick path { fill: none; stroke: #fff; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
-  .gc-done h4 { margin: 4px 0 0; font-size: 20px; font-weight: 800; }
-  .gc-done-ref { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 17px; font-weight: 800; padding: 6px 14px; border-radius: 10px; background: var(--card, #f3f0ea); border: 1px solid var(--line, rgba(28,25,23,.12)); }
-  .gc-next { text-align: left; margin: 6px 0 4px; padding-left: 20px; display: grid; gap: 7px; font-size: 14px; line-height: 1.45; }
-  .gc-done-ref-note { font-size: 12px; color: var(--muted, #78716c); }
+  .gc-done-tick circle { fill: var(--ink); }
+  .gc-done-tick path { fill: none; stroke: var(--brass-ink); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+  .gc-done h4 { margin: 4px 0 0; font: 800 26px var(--gc-text); text-transform: uppercase; letter-spacing: .04em; }
+  .gc-done-ref { font: 700 24px var(--gc-stencil); letter-spacing: .04em; padding: 6px 14px; border: 2.5px solid var(--ink); border-radius: 3px; }
+  .gc-next { text-align: left; margin: 6px 0 4px; padding-left: 20px; display: grid; gap: 7px; font-size: 15px; line-height: 1.45; }
+  .gc-done-ref-note { font-size: 13px; color: var(--muted); }
   .gc-done .gc-submit { width: 100%; }
-  .gc-empty { color: var(--muted); font-size: 14px; padding: 6px 0; }
-  .gc-miss { text-align: center; padding: 40px 20px; color: var(--muted); }
-  .gc-miss h2 { color: var(--fg); margin: 0 0 8px; }
-
-  .gc-verify { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 24px;
-    background: radial-gradient(110% 80% at 50% 40%, var(--card) 0%, var(--bg) 70%); color: var(--fg);
-    transition: opacity 300ms ease, transform 300ms ease; will-change: opacity, transform; }
-  .gc-verify.is-leaving { opacity: 0; transform: scale(1.03); pointer-events: none; }
-  .gc-verify-inner { display: flex; flex-direction: column; align-items: center; text-align: center; }
-  .gc-mark { position: relative; width: 132px; height: 132px; margin-bottom: 26px; }
-  .gc-logo-tile { position: absolute; inset: 6px; border-radius: 28px; background: #fff; padding: 18px; box-shadow: var(--lift);
-    animation: gc-pop 380ms cubic-bezier(.2,1.3,.4,1) both; }
-  .gc-logo-tile { color: #1c1917; } /* dark ink on the white tile, in either theme */
-  .gc-logo-tile svg { width: 100%; height: 100%; display: block; }
-  .gc-tick { position: absolute; right: -10px; bottom: -10px; width: 62px; height: 62px; border-radius: 50%;
-    box-shadow: 0 4px 10px rgba(0,0,0,.22); will-change: transform;
-    animation: gc-badge 340ms cubic-bezier(.2,1.6,.4,1) 260ms both; }
-  .gc-tick .disc { fill: var(--brass); stroke: var(--bg); stroke-width: 3; }
-  .gc-tick .mark { fill: none; stroke: #fff; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round;
-    stroke-dasharray: 30; stroke-dashoffset: 30; animation: gc-draw 240ms cubic-bezier(.65,0,.35,1) 440ms forwards; }
-  .gc-ripple { position: absolute; right: -10px; bottom: -10px; width: 62px; height: 62px; border-radius: 50%; border: 2px solid var(--brass);
-    animation: gc-ripple 800ms ease-out 500ms both; }
-  .gc-verify-title { font-size: 23px; font-weight: 800; letter-spacing: -.01em; animation: gc-rise 320ms ease-out 400ms both; }
-  .gc-verify-sub { margin-top: 7px; font-size: 13px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    animation: gc-rise 320ms ease-out 470ms both; }
-  .gc-verify-sub .sep { margin: 0 8px; opacity: .6; }
-  @keyframes gc-pop { 0% { transform: scale(.6); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
-  @keyframes gc-badge { 0% { transform: scale(0) rotate(-30deg) } 100% { transform: scale(1) rotate(0) } }
-  @keyframes gc-draw { to { stroke-dashoffset: 0 } }
-  @keyframes gc-ripple { 0% { transform: scale(1); opacity: .9 } 100% { transform: scale(2.1); opacity: 0 } }
-  @keyframes gc-rise { 0% { transform: translateY(8px); opacity: 0 } 100% { transform: none; opacity: 1 } }
-  @media (prefers-reduced-motion: reduce) {
-    .gc-logo-tile, .gc-tick, .gc-verify-title, .gc-verify-sub { animation: none; }
-    .gc-tick .mark { animation: none; stroke-dashoffset: 0; }
-    .gc-ripple { display: none; }
-    html.gc-revealed .gc-stamp { animation: none; }
-  }
 `
 
 export default async function GuaranteePage({ params, searchParams }) {
@@ -434,13 +412,13 @@ export default async function GuaranteePage({ params, searchParams }) {
     return (
       <div className="gc-page">
         <style dangerouslySetInnerHTML={{ __html: styles }} />
-        <div className="gc-wrap">
-          <Head number={number} />
+        <main className="gc-door">
+          <Top />
           <div className="gc-miss">
-            <h2>Card not found</h2>
-            <p>No guarantee card matches <b>{number}</b>. Please check the link, or contact the seller.</p>
+            <h1>Card not found</h1>
+            <p>No guarantee card matches <b>{number}</b>. Please scan the QR on the card again, or ask the seller.</p>
           </div>
-        </div>
+        </main>
       </div>
     )
   }
@@ -448,135 +426,115 @@ export default async function GuaranteePage({ params, searchParams }) {
   return (
     <div className="gc-page">
       <style dangerouslySetInnerHTML={{ __html: styles }} />
-      <Verified number={doc.number || number} branded={branded} />
-      <div className="gc-wrap">
-        <FitToScreen>
-          <Head number={doc.number || number} verified branded={branded} />
-          <CardView doc={doc} token={token} claims={claims} branded={branded} />
-        </FitToScreen>
-      </div>
+      <CardView doc={doc} number={doc.number || number} token={token} claims={claims} branded={branded} />
     </div>
   )
 }
 
-function Head({ number, verified = false, branded = false }) {
+function Top({ verified = false, branded = false }) {
   return (
-    <div className="gc-head">
+    <div className="gc-top">
       {branded ? (
-        <span className="gc-logo is-brand"><img src="/assets/guarantee/shiv-logo.png" alt="Shiv Hardware" width="154" height="174" /></span>
+        <span className="gc-who"><img src="/assets/guarantee/shiv-logo.png" alt="" width="154" height="174" />Shiv Hardware</span>
       ) : (
-        <span className="gc-logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+        <span className="gc-who">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 2.5c2.2 1.7 4.9 2.6 7.5 2.6v5.6c0 4.9-3.2 8.4-7.5 9.8-4.3-1.4-7.5-4.9-7.5-9.8V5.1c2.6 0 5.3-.9 7.5-2.6z" />
           </svg>
+          Guarantee card
         </span>
       )}
-      <div className="gc-brand">
-        {branded ? 'Shiv Hardware' : 'Guarantee Card'}
-        <small>{branded ? 'Guarantee Card' : 'Online record'}</small>
-      </div>
-      <div className="gc-head-right">
-        <span className="gc-tag">{number}</span>
-        {verified ? (
-          <span className="gc-verified">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
-            Verified
-          </span>
-        ) : null}
-      </div>
+      {verified ? (
+        <span className="gc-ok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+          Verified
+        </span>
+      ) : null}
     </div>
   )
 }
 
-function CardView({ doc, token, claims, branded = false }) {
+function CardView({ doc, number, token, claims, branded = false }) {
   const cust = doc.customer || {}
   const items = Array.isArray(doc.items) ? doc.items : []
   const total = items.reduce((s, it) => s + (Number(it.amount) || 0), 0)
   const maxYears = Math.max(0, ...items.map((it) => Number(it.guaranteeYears) || 0))
-  const dateStr = doc.date ? new Date(doc.date).toLocaleDateString('en-GB') : ''
+  const dateStr = doc.date ? new Date(doc.date).toLocaleDateString('en-GB').replaceAll('/', '.') : ''
 
   return (
-    <>
-      <div className="gc-card">
-        <div className="gc-name">{cust.name || '—'}</div>
-        <div className="gc-facts">
-          <div className="gc-fact"><span className="k">Aadhaar</span><span className="v">{cust.uid || 'N/A'}</span></div>
-          <div className="gc-fact"><span className="k">Phone</span><span className="v">{cust.mobile ? <a href={`tel:${cust.mobile}`}>{cust.mobile}</a> : 'N/A'}</span></div>
-          {dateStr ? <div className="gc-fact"><span className="k">Date</span><span className="v">{dateStr}</span></div> : null}
-        </div>
-      </div>
+    <main className="gc-door">
+      <Top verified branded={branded} />
 
-      <div className="gc-card">
-        <h2>Items</h2>
-        {items.length ? items.map((it, i) => {
-          const spec = [fmtThickness(it.thickness), itemSize(it)].filter(Boolean)
-          const qty = Number(it.qty) || 0
-          return (
-            <div className="gc-item" key={i}>
-              <div className="gc-item-body">
-                <div className="gc-item-top">
-                  <div className="brand">{it.brandName || '—'}</div>
-                  {Number(it.amount) ? <span className="gc-amt">{rupees(it.amount)}</span> : null}
-                </div>
-                {spec.length || qty ? (
-                  <div className="gc-item-bottom">
-                    {spec.length ? (
-                      <span className="gc-spec">
-                        {spec.map((s, j) => <span key={j}>{j ? <span className="dot">·</span> : null}{s}</span>)}
-                      </span>
-                    ) : null}
-                    {qty ? <span className="gc-qty">{qty} {qty === 1 ? 'pc' : 'pcs'}</span> : null}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          )
-        }) : <div className="gc-empty">No items listed on this card.</div>}
-        {total > 0 || maxYears > 0 ? (
-          <div className="gc-total">
-            <Stamp years={maxYears} seed={doc.number} />
-            {total > 0 ? <div className="gc-total-sum"><span>Total</span><b>{rupees(total)}</b></div> : null}
-          </div>
-        ) : null}
-      </div>
-      {claims.length ? (
-        <div className="gc-card gc-claims">
-          <h2>Your claims</h2>
-          {claims.map((c) => (
-            <div className="gc-claim" key={c.ref}>
-              <div className="gc-claim-top">
-                <span className="gc-claim-ref">{c.ref}</span>
-                <span className={`gc-status is-${c.status}`}>{CLAIM_STATUS[c.status] || c.status}</span>
-              </div>
-              <div className="gc-claim-sub">
-                {CLAIM_ISSUE[c.issue] || c.issue} · {c.doors} {c.doors === 1 ? 'door' : 'doors'} · {new Date(c.createdAt).toLocaleDateString('en-GB')}
-              </div>
-              {c.note ? <div className="gc-claim-note">{c.note}</div> : null}
-            </div>
-          ))}
+      {maxYears > 0 ? (
+        <div className="gc-years" role="img" aria-label={`${maxYears} year guarantee against borer`}>
+          <span className="n" aria-hidden="true">{maxYears}</span>
+          <span className="w" aria-hidden="true">{maxYears === 1 ? 'Year' : 'Years'}<small>guarantee against borer</small></span>
         </div>
-      ) : null}
-      <div className="gc-terms-short">
-        <span>Terms</span>
-        <ul>
-          <li>Covers borer and air bubbles only.</li>
-          <li>Termite damage is not covered.</li>
-          <li>Valid for the years shown, from the date on this card.</li>
-          <li>Replacement requires the original card and bill, subject to inspection.</li>
-        </ul>
+      ) : <div />}
+
+      <CardStage label={`Guarantee card ${number}`}>
+        <div className="gc-face gc-front">
+          <div className="gc-no">Guarantee card <b>{number}</b></div>
+          <div>
+            <h1>{cust.name || '—'}</h1>
+            <dl className="gc-facts">
+              <dt>Aadhaar</dt><dd>{maskUid(cust.uid)}</dd>
+              <dt>Phone</dt><dd>{cust.mobile ? <a href={`tel:${cust.mobile}`}>{cust.mobile}</a> : 'N/A'}</dd>
+              {dateStr ? <><dt>Date</dt><dd>{dateStr}</dd></> : null}
+            </dl>
+          </div>
+          <ul className="gc-items">
+            {items.length ? items.map((it, i) => {
+              const qty = Number(it.qty) || 0
+              const spec = [fmtThickness(it.thickness), itemSize(it), qty ? `${qty} ${qty === 1 ? 'pc' : 'pcs'}` : ''].filter(Boolean).join(' · ')
+              return (
+                <li key={i}>
+                  <span className="spec">{spec || it.brandName || '—'}</span>
+                  {Number(it.amount) ? <span className="amt">{rupees(it.amount)}</span> : <span />}
+                  {spec && it.brandName ? <span className="nm">{it.brandName}</span> : null}
+                </li>
+              )
+            }) : <li className="none">No items listed on this card.</li>}
+          </ul>
+          <div className="gc-foot">
+            <Seal years={maxYears} seed={number} />
+            {total > 0 ? <div className="gc-sum"><small>Total</small><b>{rupees(total)}</b></div> : null}
+          </div>
+        </div>
+      </CardStage>
+
+      <div className="gc-act">
+        {claims.length ? (
+          <section className="gc-claims">
+            <h2>Your claims</h2>
+            {claims.map((c) => (
+              <div className="gc-claim" key={c.ref}>
+                <div className="gc-claim-top">
+                  <span className="gc-claim-ref">{c.ref}</span>
+                  <span className={`gc-status is-${c.status}`}>{CLAIM_STATUS[c.status] || c.status}</span>
+                </div>
+                <div className="gc-claim-sub">
+                  {CLAIM_ISSUE[c.issue] || c.issue} · {c.doors} {c.doors === 1 ? 'door' : 'doors'} · {new Date(c.createdAt).toLocaleDateString('en-GB')}
+                </div>
+                {c.note ? <div className="gc-claim-note">{c.note}</div> : null}
+              </div>
+            ))}
+          </section>
+        ) : null}
+        <CardActions
+          seller={branded ? 'Shiv Hardware Store' : ''}
+          convexUrl={CONVEX_URL}
+          number={number}
+          token={token}
+          items={items.map((it) => ({
+            label: [it.brandName || 'Item', fmtThickness(it.thickness), itemSize(it)].filter(Boolean).join(' · '),
+            qty: Number(it.qty) || 0,
+          }))}
+        />
+        <p className="gc-terms">Borer and air bubbles are covered; termites are not. Valid for the years shown from the card&apos;s date. A replacement needs the original card and bill, after inspection.</p>
       </div>
-      <CardActions
-        seller={branded ? 'Shiv Hardware Store' : ''}
-        convexUrl={CONVEX_URL}
-        number={doc.number}
-        token={token}
-        items={items.map((it) => ({
-          label: [it.brandName || 'Item', fmtThickness(it.thickness), itemSize(it)].filter(Boolean).join(' · '),
-          qty: Number(it.qty) || 0,
-        }))}
-      />
-    </>
+    </main>
   )
 }
