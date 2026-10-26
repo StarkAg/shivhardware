@@ -54,6 +54,15 @@ function fitLines(card) {
   }
 }
 
+// A weak phone (little memory or few cores) or one saving data: the card keeps its
+// turn but lies still after it, without the tilt and sheen that redraw it on every move
+// of the hand (page.jsx: .gc-lite).
+function weakDevice() {
+  const n = navigator
+  return n.connection?.saveData === true || n.deviceMemory <= 2 || n.hardwareConcurrency <= 2 ||
+    (n.deviceMemory <= 4 && n.hardwareConcurrency <= 4)
+}
+
 // `rows`: the card's item rows. A card lies a little askew on the wood, less the longer
 // it is, or a full one (18 rows) would lean off the screen.
 export default function CardStage({ label, rows = 1, children }) {
@@ -66,6 +75,7 @@ export default function CardStage({ label, rows = 1, children }) {
   useLayoutEffect(() => {
     const el = card.current
     const door = el.closest('.gc-door')
+    if (weakDevice()) el.closest('.gc-page')?.classList.add('gc-lite')
     let width = 0
     const fit = () => {
       if (window.innerWidth === width) return
@@ -110,7 +120,7 @@ export default function CardStage({ label, rows = 1, children }) {
       if (ctx && ctx.state === 'running') chime(ctx)
     }, still ? 50 : TURN_MS)
 
-    if (still) return () => { clearTimeout(landed); ctx?.close?.().catch(() => {}) }
+    if (still || weakDevice()) return () => { clearTimeout(landed); ctx?.close?.().catch(() => {}) }
 
     let tx = 0, ty = 0, x = 0, y = 0, raf = 0
     const frame = () => {
@@ -119,11 +129,15 @@ export default function CardStage({ label, rows = 1, children }) {
       el.style.setProperty('--ry', `${x.toFixed(2)}deg`)
       el.style.setProperty('--rx', `${(-y).toFixed(2)}deg`)
       el.style.setProperty('--shine', `${(x * 2).toFixed(1)}%`)
-      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.02 ? requestAnimationFrame(frame) : 0
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.05 ? requestAnimationFrame(frame) : 0
     }
     const aim = (nx, ny) => {
-      tx = Math.max(-10, Math.min(10, nx * 10))
-      ty = Math.max(-8, Math.min(8, ny * 8))
+      const ax = Math.max(-10, Math.min(10, nx * 10))
+      const ay = Math.max(-8, Math.min(8, ny * 8))
+      // A phone held still still trembles a little: under half a degree, nothing redraws.
+      if (Math.abs(ax - tx) + Math.abs(ay - ty) < 0.5) return
+      tx = ax
+      ty = ay
       if (!raf) raf = requestAnimationFrame(frame)
     }
     // The turn owns the transform until it ends; the tilt takes over after.

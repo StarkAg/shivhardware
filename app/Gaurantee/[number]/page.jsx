@@ -124,7 +124,7 @@ function Seal({ years, seed }) {
   if (!SEAL_YEARS.includes(years)) return null
   const { turn, x, y } = stampPose(seed)
   const style = { '--turn': `${turn.toFixed(1)}deg`, '--dx': `${x}px`, '--dy': `${y}px` }
-  return <img className="gc-seal" style={style} src={`/assets/guarantee/seal-${years}yr.png`} alt={`${years} year guarantee seal`} width="264" height="264" />
+  return <img className="gc-seal" style={style} src={`/assets/guarantee/seal-${years}yr.webp`} alt={`${years} year guarantee seal`} width="264" height="264" decoding="async" />
 }
 const rupees = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`
 // Rows of one brand (and one guarantee period) together, in the card's order: the brand
@@ -309,6 +309,15 @@ const styles = `
     .gc-years .w { animation-delay: 1.25s; }
     .gc-seal { animation: gc-press .45s cubic-bezier(.3, 1.5, .5, 1) 1.4s both; }
   }
+  /* A weak phone (CardStage.jsx: weakDevice): the same card, cheaper to draw. The wood
+     keeps its fine grain without the wide wavy rings, the card lies still (no sheen to
+     blend), and the years ink in without a blur. */
+  .gc-page.gc-lite { background:
+      repeating-linear-gradient(176deg, transparent 0 7px, rgba(120, 78, 30, .06) 8px 9px, transparent 10px 23px),
+      linear-gradient(180deg, var(--veneer) 0%, var(--veneer-2) 100%); }
+  .gc-lite .gc-front::after { content: none; }
+  .gc-lite .gc-years > * { animation-name: gc-show; }
+  @keyframes gc-show { from { opacity: 0; } }
   @keyframes gc-turn { from { transform: rotate(-9deg) translateY(-18px) rotateY(-180deg) rotateX(8deg); } }
   @keyframes gc-ink { from { opacity: 0; transform: scale(1.1); filter: blur(1.5px); } to { opacity: 1; transform: none; filter: none; } }
   @keyframes gc-press { from { opacity: 0; scale: 1.7; rotate: calc(var(--turn) - 12deg); } to { opacity: 1; scale: 1; rotate: var(--turn); } }
