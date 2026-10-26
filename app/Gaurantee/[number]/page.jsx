@@ -91,7 +91,7 @@ function fmtThickness(t) {
 // The shop's wax seals (Shiv_Panel/assets/seals). One goes on the card by the total,
 // stamped at the angle a hand would leave it. The angle comes from the card number,
 // so a card looks the same every time it is opened.
-const SEAL_YEARS = [1, 3, 7, 10, 25]
+const SEAL_YEARS = [1, 3, 7, 10, 20, 25]
 function stampPose(seed) {
   // -span/2 .. +span/2, from its own FNV-1a hash per value so they vary independently.
   const pick = (salt, span) => {
