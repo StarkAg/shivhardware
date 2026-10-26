@@ -5,7 +5,7 @@
 // a tap), then follows the hand: it tilts with the pointer or the phone, eased,
 // clamped, and comes back to rest. Without JavaScript, or with reduced motion, the
 // card simply lies face up; nothing waits on it.
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 
 const TURN_MS = 1350 // the turn (globals in page.jsx: .gc-card animation) and its landing
 
@@ -35,6 +35,40 @@ function chime(ctx) {
 // it is, or a full one (18 rows) would lean off the screen.
 export default function CardStage({ label, rows = 1, children }) {
   const card = useRef(null)
+
+  // One screen when the card allows it: on a phone the card takes the room left by the
+  // years, the button and the terms, as near the card's own 54 x 86 shape as that room
+  // allows, and grows past it (the page scrolls) only when its rows need more. Measured
+  // once the fonts are in, again when the phone turns; not on every address-bar resize.
+  useLayoutEffect(() => {
+    const el = card.current
+    const door = el.closest('.gc-door')
+    let width = 0
+    const fit = () => {
+      if (window.innerWidth === width) return
+      width = window.innerWidth
+      el.style.width = el.style.minHeight = el.style.aspectRatio = ''
+      if (width >= 860) return // a computer: the card sits beside the claim (page.jsx)
+      const widest = Math.min(width * 0.84, 330)
+      el.style.aspectRatio = 'auto'
+      el.style.width = `${widest}px`
+      door.style.minHeight = '0px'
+      const room = window.innerHeight - (document.documentElement.scrollHeight - el.offsetHeight)
+      const w = Math.max(Math.min(widest, room * 54 / 86), Math.min(250, widest))
+      el.style.width = `${w}px`
+      el.style.minHeight = `${Math.max(el.offsetHeight, Math.min(room, w * 86 / 54))}px`
+      door.style.minHeight = ''
+    }
+    const refit = () => { width = 0; fit() }
+    fit()
+    document.fonts?.ready.then(refit)
+    window.addEventListener('resize', fit)
+    window.addEventListener('orientationchange', refit)
+    return () => {
+      window.removeEventListener('resize', fit)
+      window.removeEventListener('orientationchange', refit)
+    }
+  }, [])
 
   useEffect(() => {
     const el = card.current

@@ -130,10 +130,16 @@ const rupees = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`
 // Rows of one brand (and one guarantee period) together, in the card's order: the brand
 // is said once, then one line per size. A card holds up to 18 rows (Shiv_Panel
 // print-server/template.mjs CARD_ROW_STEP_MM), so this keeps a full one readable.
+// The shop's short codes for the Signature range, written out where they stand as a word
+// ("WPC Chowket S", "SGC"); the printed card keeps them short.
+const BRAND_CODES = { S: 'Signature', SG: 'Signature Gold', SGC: 'Signature Gold Club' }
+function brandLabel(name) {
+  return String(name || '').trim().replace(/\b(SGC|SG|S)\b/g, (code) => BRAND_CODES[code])
+}
 function groupByBrand(items) {
   const groups = []
   for (const it of items) {
-    const brand = String(it.brandName || '').trim()
+    const brand = brandLabel(it.brandName)
     const years = Number(it.guaranteeYears) || 0
     const last = groups[groups.length - 1]
     if (last && last.brand === brand && last.years === years) last.items.push(it)
@@ -224,6 +230,9 @@ const styles = `
 
   /* The plywood: rotary-cut veneer, its long wavy grain drawn in CSS (no image to load). */
   body:has(.gc-page) { margin: 0; background: #dcb67c; }
+  /* No scroll bar over the wood (or the claim form): it still scrolls by finger, wheel and keys. */
+  html:has(.gc-page), .gc-sheet-body { scrollbar-width: none; }
+  html:has(.gc-page)::-webkit-scrollbar, .gc-sheet-body::-webkit-scrollbar { display: none; }
   .gc-page { min-height: 100vh; min-height: 100dvh; overflow-x: clip; color: var(--ink); font-family: var(--gc-text);
     font-optical-sizing: auto;
     background:
@@ -249,7 +258,7 @@ const styles = `
   /* The card: 54 x 86, as large as the screen allows beside the years and the button;
      a card with many items grows taller rather than cramping them. */
   .gc-stage { display: grid; place-items: center; perspective: 1300px; padding: 4px 0 8px; }
-  .gc-card { position: relative; display: grid; width: min(84vw, 330px, calc((100dvh - 330px) * 54 / 86)); min-width: min(260px, 100%); aspect-ratio: 54 / 86;
+  .gc-card { position: relative; display: grid; width: min(84vw, 330px, calc((100dvh - 390px) * 54 / 86)); min-width: min(250px, 100%); aspect-ratio: 54 / 86;
     transform-style: preserve-3d; transform: rotate(var(--lean, -2.5deg)) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); }
   .gc-card::before { content: ""; position: absolute; inset: 4% 3% -3% 5%; border-radius: 6%; background: rgba(60, 34, 8, .42); filter: blur(14px); transform: translateZ(-1px); }
   /* No overflow: hidden on the faces: it would stop the card growing to fit its items
@@ -262,11 +271,12 @@ const styles = `
   /* PVC catches the light: a sheen that moves with the tilt. */
   .gc-front::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; mix-blend-mode: soft-light;
     background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .8) calc(45% + var(--shine, 0%)), transparent 62%); }
-  .gc-no { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .05em; }
-  .gc-no b { color: var(--print); font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  /* A card in its first 20 days carries the shop's mark, printed on it like the name. */
-  .gc-maker { display: inline-flex; align-items: center; gap: 7px; color: var(--print); font-weight: 800; }
-  .gc-maker img { width: 26px; height: 29px; object-fit: contain; }
+  .gc-no { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 10px; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .05em; }
+  .gc-no b { margin-left: auto; color: var(--print); font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* A card in its first 20 days carries the shop's mark, printed on it like the name
+     (the shop's name in words is in the bar above). */
+  .gc-maker { display: inline-flex; align-self: center; }
+  .gc-maker img { width: 28px; height: 32px; object-fit: contain; }
   .gc-front h1 { margin: 12px 0 0; font-size: clamp(25px, 7.6vw, 30px); line-height: .98; font-weight: 800; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; overflow-wrap: anywhere; }
   .gc-facts { margin: 9px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 1px 12px; font-size: 17px; }
   .gc-facts dt { color: var(--print-2); font-weight: 500; }
@@ -279,6 +289,7 @@ const styles = `
   .gc-items li.brand { padding: 8px 0 1px; border-bottom: 0; font-size: 15px; font-weight: 700; color: var(--print-2); text-transform: uppercase; letter-spacing: .04em; }
   .gc-items li.brand span { color: var(--stamp); white-space: nowrap; }
   .gc-items .spec { font-family: var(--gc-stencil); font-weight: 700; font-size: 20px; letter-spacing: .02em; line-height: 1.05; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+  .gc-items .spec span span { white-space: nowrap; }
   .gc-items .amt { font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .gc-none { margin: 8px 0 0; font-size: 16px; color: var(--print-2); }
   .gc-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 10px; }
@@ -320,7 +331,8 @@ const styles = `
   .gc-btn:focus-visible, .gc-submit:focus-visible, .gc-sheet-x:focus-visible { outline: 3px solid var(--stamp); outline-offset: 3px; }
   .gc-btn, .gc-submit, .gc-issue, .gc-photo-add { transition: transform 120ms ease, filter 120ms ease; }
   .gc-btn:active, .gc-submit:active, .gc-issue:active, .gc-photo-add:active { transform: scale(.97); filter: brightness(.9); }
-  .gc-terms { margin: 0; font-size: 16px; line-height: 1.35; color: var(--ink-2); font-weight: 500; text-align: center; text-wrap: pretty; }
+  .gc-terms { margin: 0; font-size: 16px; line-height: 1.3; color: var(--ink-2); font-weight: 500; text-align: center; text-wrap: balance; }
+
 
   /* A computer: the card on the left, the years and the claim beside it, all in one
      screen even on a short laptop. */
@@ -497,7 +509,7 @@ function CardView({ doc, number, token, claims, branded = false }) {
         <div className="gc-face gc-front">
           <div className="gc-no">
             {branded
-              ? <span className="gc-maker"><img src="/assets/guarantee/shiv-logo.png" alt="" width="154" height="174" />Shiv Hardware</span>
+              ? <span className="gc-maker"><img src="/assets/guarantee/shiv-logo.png" alt="Shiv Hardware" width="154" height="174" /></span>
               : 'Guarantee card'}
             <b>{number}</b>
           </div>
@@ -517,10 +529,11 @@ function CardView({ doc, number, token, claims, branded = false }) {
               ) : null}
               {g.items.map((it, j) => {
                 const qty = Number(it.qty) || 0
-                const spec = [fmtThickness(it.thickness), itemSize(it), qty ? `${qty} ${qty === 1 ? 'pc' : 'pcs'}` : ''].filter(Boolean).join(' · ')
+                const spec = [fmtThickness(it.thickness), itemSize(it), qty ? `${qty} ${qty === 1 ? 'pc' : 'pcs'}` : ''].filter(Boolean)
                 return (
                   <li key={j}>
-                    <span className="spec">{spec || '—'}</span>
+                    {/* Each part kept whole: a line breaks between "81″ × 36″" and "4 pcs", never inside one. */}
+                    <span className="spec">{spec.length ? spec.map((s, k) => <span key={k}>{k ? ' · ' : ''}<span>{s}</span></span>) : '—'}</span>
                     {Number(it.amount) ? <span className="amt">{rupees(it.amount)}</span> : null}
                   </li>
                 )
@@ -559,14 +572,14 @@ function CardView({ doc, number, token, claims, branded = false }) {
           number={number}
           token={token}
           items={items.map((it) => ({
-            label: [it.brandName || 'Item', fmtThickness(it.thickness), itemSize(it)].filter(Boolean).join(' · '),
+            label: [brandLabel(it.brandName) || 'Item', fmtThickness(it.thickness), itemSize(it)].filter(Boolean).join(' · '),
             qty: Number(it.qty) || 0,
           }))}
         />
         {/* A card made with its termite line switched off is guaranteed against termites too. */}
         <p className="gc-terms">
-          {doc.termiteNote === false ? 'Borer, termites and air bubbles are covered.' : 'Borer and air bubbles are covered; termites are not.'}
-          {' '}Valid for the years shown from the card&apos;s date. A replacement needs the original card and bill, after inspection.
+          {doc.termiteNote === false ? 'Covers borer, termites and air bubbles' : 'Covers borer and air bubbles, not termites'}, from the card&apos;s date.
+          {' '}Bring the original card and bill; the door is inspected.
         </p>
       </div>
     </main>
